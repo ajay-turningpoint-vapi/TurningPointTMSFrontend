@@ -40,16 +40,37 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useDispatch, useSelector } from "react-redux";
-import { getTasks } from "../../actions/taskActions";
+import { getTasks, updateTaskStatus } from "../../actions/taskActions";
 const TypographyPage = () => {
   const dispatch = useDispatch();
-  const { tasks } = useSelector((state) => state.tasks);
+  const { tasks, loading, error } = useSelector((state) => state.tasks);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [role, setRole] = useState("User");
   const [allTasks, setAllTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [showReason, setShowReason] = useState(false);
+  const [reason, setReason] = useState("");
+  const [newStatus, setNewStatus] = useState("");
+  const [changesAttachments, setChangesAttachments] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [editedTask, setEditedTask] = useState({
+    title: selectedTask?.title,
+    description: selectedTask?.description,
+    assignTo: selectedTask?.assignTo,
+    priority: selectedTask?.priority,
+    dueDate: selectedTask?.dueDate,
+  });
+  const handleStatusChangeClick = (changedStatus) => {
+    setShowReason(true);
+    setNewStatus(changedStatus);
+  };
+
+  const handleAttachmentChange = (event) => {
+    setChangesAttachments(event.target.files);
+  };
 
   useEffect(() => {
     dispatch(getTasks());
@@ -72,6 +93,16 @@ const TypographyPage = () => {
     setSearchTerm(event.target.value);
   };
 
+  const handleSave = (e, taskId) => {
+    e.preventDefault();
+    dispatch(updateTaskStatus(taskId, newStatus, reason, changesAttachments));
+    setShowReason(false);
+    setReason("");
+    setNewStatus("");
+    setChangesAttachments([]);
+    handleDialogClose();
+  };
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
@@ -91,9 +122,9 @@ const TypographyPage = () => {
     switch (status) {
       case "Open":
         return "success";
-      case "In-Progress":
+      case "In Progress":
         return "warning";
-      case "Close":
+      case "Completed":
         return "error";
       default:
         return "default";
@@ -120,10 +151,26 @@ const TypographyPage = () => {
 
   const handleDialogClose = () => {
     setOpenDialog(false);
+    setShowReason(false);
+    setEditMode(false)
   };
 
   const handleEditClick = (task) => {
     // Implement edit functionality
+  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedTask((prevTask) => ({
+      ...prevTask,
+      [name]: value,
+    }));
+  };
+
+  const handleEditSave = () => {
+    // Add logic to save the edited task
+    // For now, just log the edited task
+    console.log(editedTask);
+    setEditMode(false);
   };
 
   const handleDeleteClick = (task) => {
@@ -226,7 +273,7 @@ const TypographyPage = () => {
                     {closed}
                   </Typography>
                   <Typography variant="h6" align="center" gutterBottom>
-                    Closed Tasks
+                    Completed Tasks
                   </Typography>
                 </CardContent>
               </Card>
@@ -273,11 +320,6 @@ const TypographyPage = () => {
                 </TableCell>
                 {role === "Admin" ? null : (
                   <>
-                    <TableCell>
-                      <Typography variant="h6" fontWeight={600}>
-                        Created By
-                      </Typography>
-                    </TableCell>
                     <TableCell>
                       <Typography variant="h6" fontWeight={600}>
                         Assigned To
@@ -358,15 +400,6 @@ const TypographyPage = () => {
                             variant="subtitle2"
                             fontWeight={400}
                           >
-                            {taskDetail.createdBy}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography
-                            color="textSecondary"
-                            variant="subtitle2"
-                            fontWeight={400}
-                          >
                             {taskDetail.assignTo}
                           </Typography>
                         </TableCell>
@@ -376,7 +409,9 @@ const TypographyPage = () => {
                       <Chip
                         sx={{
                           px: "4px",
-                          backgroundColor: getPriorityColor(taskDetail.priority),
+                          backgroundColor: getPriorityColor(
+                            taskDetail.priority
+                          ),
                           color: "#fff",
                         }}
                         style={{ fontWeight: "900" }}
@@ -442,11 +477,13 @@ const TypographyPage = () => {
                       </TableCell>
                     )}
                     <TableCell>
-                      <IconButton
-                        aria-label="edit"
-                        onClick={() => handleEditClick(taskDetail)}
+                     
+                    <IconButton
+                        aria-label="view"
+                        color="primary"
+                        onClick={() => handleViewClick(taskDetail)}
                       >
-                        <EditIcon />
+                        <VisibilityIcon />
                       </IconButton>
                       <IconButton
                         aria-label="delete"
@@ -454,13 +491,7 @@ const TypographyPage = () => {
                       >
                         <DeleteIcon />
                       </IconButton>
-                      <IconButton
-                        aria-label="view"
-                        color="primary"
-                        onClick={() => handleViewClick(taskDetail)}
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
+                     
                     </TableCell>
                   </TableRow>
                 ))}
@@ -469,72 +500,384 @@ const TypographyPage = () => {
         </Box>
       </DashboardCard>
       {selectedTask && (
-        <Dialog open={openDialog} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            Task Details
-          </DialogTitle>
+        <Dialog
+          open={openDialog}
+          onClose={handleDialogClose}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Task Details</DialogTitle>
           <DialogContent>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Title:
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {selectedTask.title}
-              </Typography>
+            <Box
+              sx={{ mt: 2 }}
+              style={{
+                border: "1px solid gray",
+                borderRadius: "10px",
+                padding: "10px",
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Title:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {editMode ? (
+                    <TextField
+                      fullWidth
+                      name="title"
+                      value={editedTask.title}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <Typography variant="body1" gutterBottom>
+                      {selectedTask.title}
+                    </Typography>
+                  )}
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Created By:
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {selectedTask.createdBy}
-              </Typography>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Description:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {editMode ? (
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      name="description"
+                      value={editedTask.description}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <Typography variant="body1" gutterBottom>
+                      {selectedTask.description}
+                    </Typography>
+                  )}
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Assigned To:
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {selectedTask.assignTo}
-              </Typography>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Category:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="body1" gutterBottom>
+                    {selectedTask.category}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Created By:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="body1" gutterBottom>
+                    {selectedTask.createdBy}
+                  </Typography>
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Priority:
-              </Typography>
-              <Chip
-                sx={{
-                  px: "4px",
-                  backgroundColor: getPriorityColor(selectedTask.priority),
-                  color: "#fff",
-                }}
-                style={{ fontWeight: "900" }}
-                size="small"
-                label={selectedTask.priority}
-              />
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Assigned To:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {editMode ? (
+                    <TextField
+                      fullWidth
+                      name="assignTo"
+                      value={editedTask.assignTo}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <Typography variant="body1" gutterBottom>
+                      {selectedTask.assignTo}
+                    </Typography>
+                  )}
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Status:
-              </Typography>
-              <Chip
-                label={selectedTask.status}
-                color={getStatusColor(selectedTask.status)}
-                size="small"
-              />
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Priority:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {editMode ? (
+                    <TextField
+                      select
+                      fullWidth
+                      name="priority"
+                      value={editedTask.priority}
+                      onChange={handleInputChange}
+                    >
+                      <MenuItem value="High">High</MenuItem>
+                      <MenuItem value="Medium">Medium</MenuItem>
+                      <MenuItem value="Low">Low</MenuItem>
+                    </TextField>
+                  ) : (
+                    <Chip
+                      sx={{
+                        px: "4px",
+                        backgroundColor: getPriorityColor(
+                          selectedTask.priority
+                        ),
+                        color: "#fff",
+                      }}
+                      style={{ fontWeight: "900" }}
+                      size="small"
+                      label={selectedTask.priority}
+                    />
+                  )}
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Due Date:
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {moment(selectedTask.dueDate).format("DD-MMMM-YYYY HH:mm A")}
-              </Typography>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Status:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Chip
+                    label={selectedTask.status}
+                    color={getStatusColor(selectedTask.status)}
+                    size="small"
+                  />
+                </Grid>
 
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Updated Time:
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {moment(selectedTask.createdTimeStamp).fromNow()}
-              </Typography>
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Due Date:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {editMode ? (
+                    <TextField
+                      type="datetime-local"
+                      fullWidth
+                      name="dueDate"
+                      value={moment(editedTask.dueDate).format(
+                        "YYYY-MM-DDTHH:mm"
+                      )}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <Typography variant="body1" gutterBottom color={"green"}>
+                      {moment(selectedTask.dueDate).format(
+                        "DD-MMMM-YYYY HH:mm A"
+                      )}
+                    </Typography>
+                  )}
+                </Grid>
+
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Created At:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="body1" gutterBottom>
+                    {moment(selectedTask.createdAt).format(
+                      "DD-MMMM-YYYY HH:mm A"
+                    )}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Updated At:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="body1" gutterBottom>
+                    {moment(selectedTask.updatedAt).format(
+                      "DD-MMMM-YYYY HH:mm A"
+                    )}
+                  </Typography>
+                </Grid>
+
+                {selectedTask.closedAt && (
+                  <>
+                    {" "}
+                    <Grid item xs={4}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={600}
+                        gutterBottom
+                      >
+                        Completed At:
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={8}>
+                      <Typography variant="body1" gutterBottom color={"error"}>
+                        {moment(selectedTask.closedAt).format(
+                          "DD-MMMM-YYYY HH:mm A"
+                        )}
+                      </Typography>
+                    </Grid>
+                  </>
+                )}
+
+                <Grid item xs={4}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Attachments:
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  {selectedTask.attachments &&
+                    selectedTask.attachments.map((attachment, index) => (
+                      <Box key={index} sx={{ mb: 1 }}>
+                        <Typography variant="body1" gutterBottom>
+                          {attachment.type}:{" "}
+                          <a
+                            href={attachment.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {attachment.path}
+                          </a>
+                        </Typography>
+                      </Box>
+                    ))}
+                </Grid>
+                {selectedTask.statusChanges &&
+                  selectedTask.statusChanges.length > 0 && (
+                    <Grid item xs={12}>
+                      {selectedTask.statusChanges.map((change, index) => (
+                        <Box
+                          style={{
+                            border: "1px solid ",
+                            borderRadius: "5px",
+                            marginBottom: "10px",
+                            padding: "5px",
+                          }}
+                        >
+                          <Grid container spacing={2} key={index}>
+                            <Grid item xs={4}>
+                              <Chip
+                                label={change.status}
+                                color={getStatusColor(change.status)}
+                                size="small"
+                              />
+                            </Grid>
+                            <Grid item xs={8}>
+                              <Typography variant="body1" gutterBottom>
+                                {change.reason}
+                              </Typography>
+                            </Grid>
+                            {change.changesAttachments &&
+                              change.changesAttachments.length > 0 && (
+                                <Grid item xs={12}>
+                                  <Grid container spacing={2}>
+                                    {change.changesAttachments.map(
+                                      (attachment, index) => (
+                                        <Grid item key={index}>
+                                          <img
+                                            src={attachment.path}
+                                            alt={`Attachment ${index}`}
+                                            style={{
+                                              maxWidth: "100px",
+                                              maxHeight: "100px",
+                                            }}
+                                          />
+                                        </Grid>
+                                      )
+                                    )}
+                                  </Grid>
+                                </Grid>
+                              )}
+                          </Grid>
+                        </Box>
+                      ))}
+                    </Grid>
+                  )}
+              </Grid>
             </Box>
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Change Status:
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ mr: 2 }}
+                onClick={() => handleStatusChangeClick("Open")}
+              >
+                ReOpen
+              </Button>
+              <Button
+                variant="contained"
+                color="warning"
+                sx={{ mr: 2 }}
+                onClick={() => handleStatusChangeClick("In Progress")}
+              >
+                In-Progress
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleStatusChangeClick("Completed")}
+              >
+                Completed
+              </Button>
+            </Box>
+            {showReason && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                  Reason for Change:
+                </Typography>
+                <TextField
+                  multiline
+                  rows={4}
+                  fullWidth
+                  variant="outlined"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Enter reason for status change"
+                />
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                    Attachments:
+                  </Typography>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleAttachmentChange}
+                  />
+                </Box>
+                <Button
+                  onClick={(e) => handleSave(e, selectedTask._id)}
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
+                  Update Task
+                </Button>
+              </Box>
+            )}
           </DialogContent>
           <DialogActions>
+            {editMode ? (
+              <>
+                <Button onClick={() => setEditMode(false)} variant="outlined" color="error">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEditSave}
+                  variant="outlined"
+                  color="secondary"
+                >
+                  Save
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setEditMode(true)} variant="contained" color="success">
+                Edit
+              </Button>
+            )}
             <Button onClick={handleDialogClose} variant="contained">
               Close
             </Button>

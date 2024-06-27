@@ -6,6 +6,9 @@ import {
   UPDATE_TASK,
   DELETE_TASK,
   TASK_ERROR,
+  UPDATE_TASK_STATUS_REQUEST,
+  UPDATE_TASK_STATUS_SUCCESS,
+  UPDATE_TASK_STATUS_FAILURE,
 } from "./types";
 import { ip } from "../utils/ipconfig";
 
@@ -76,6 +79,38 @@ export const updateTask = (id, formData) => async (dispatch) => {
       payload: { msg: err.response.statusText, status: err.response.status },
     });
   }
+};
+
+//update status
+
+const updateTaskStatusRequest = () => ({
+  type: UPDATE_TASK_STATUS_REQUEST,
+});
+
+const updateTaskStatusSuccess = (task) => ({
+  type: UPDATE_TASK_STATUS_SUCCESS,
+  payload: task,
+});
+
+const updateTaskStatusFailure = (error) => ({
+  type: UPDATE_TASK_STATUS_FAILURE,
+  payload: error,
+});
+
+export const updateTaskStatus = (taskId, newStatus, reason, changesAttachments) => {
+  return async (dispatch) => {
+    dispatch(updateTaskStatusRequest());
+    try {
+      const response = await axios.put(`${ip}/api/tasks/${taskId}/status`, {
+        newStatus,
+        reason,
+        changesAttachments,
+      });
+      dispatch(updateTaskStatusSuccess(response.data.task));
+    } catch (error) {
+      dispatch(updateTaskStatusFailure(error.message));
+    }
+  };
 };
 
 // Delete task
