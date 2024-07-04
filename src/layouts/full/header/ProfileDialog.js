@@ -13,7 +13,7 @@ import {
   Grid,
 } from "@mui/material";
 import ProfileImg from "../../../assets/images/profile/user-1.jpg";
-import { getProfile } from "../../../api/authApi";
+
 import { useSelector } from "react-redux";
 const ProfileDialog = ({ open, onClose, profile }) => {
   return (

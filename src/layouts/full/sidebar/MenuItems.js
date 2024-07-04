@@ -24,19 +24,19 @@ const Menuitems = [
   },
   {
     navlabel: true,
-    subheader: "All Tickets",
+    subheader: "All Tasks",
   },
   {
     id: uniqueId(),
-    title: "Tickets",
+    title: "Tasks",
     icon: IconTypography,
-    href: "/all-tickets",
+    href: "/all-tasks",
   },
   {
     id: uniqueId(),
-    title: "Add Ticket",
+    title: "Add Task",
     icon: IconCopy,
-    href: "/add-tickets",
+    href: "/add-task",
   },
   {
     navlabel: true,
@@ -48,6 +48,16 @@ const Menuitems = [
     title: "All Users",
     icon: IconAperture,
     href: "/all-users",
+  },
+  {
+    id: uniqueId(),
+    title: "Create User",
+    icon: IconAperture,
+    href: "/create-user",
+  },{ id: uniqueId(),
+    title: "Voice Recorder",
+    icon: IconCopy,
+    href: "/voice",
   },
 ];
 export const MenuitemsForUsers = [
@@ -78,7 +88,7 @@ export const MenuitemsForUsers = [
     icon: IconCopy,
     href: "/add-tickets",
   },
-  
+    
 ];
 export const old = [
   {

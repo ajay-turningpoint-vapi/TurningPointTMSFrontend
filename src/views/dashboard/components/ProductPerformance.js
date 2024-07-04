@@ -16,34 +16,27 @@ import {
   IconButton,
 } from "@mui/material";
 import DashboardCard from "../../../components/shared/DashboardCard";
-import { getUsers } from "../../../api/authApi";
+
 import moment from "moment";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch, useSelector } from "react-redux";
+import { getUsers } from "../../../actions/userActions";
 const ProductPerformance = () => {
-  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
+  const { users } = useSelector((state) => state.users);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [reportingManagers, setReportingManagers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getUsers();
-        setUsers(response.data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    fetchData();
+    dispatch(getUsers());
   }, []);
 
   const handleEditClick = async (user) => {
-    
     setEditingUserId(user._id);
     setEditedUser({ ...user });
     try {
@@ -60,18 +53,17 @@ const ProductPerformance = () => {
   };
 
   const handleSaveClick = () => {
-    
     const updatedUsers = users.map((user) =>
       user._id === editedUser._id ? editedUser : user
     );
-    setUsers(updatedUsers);
+    // setUsers(updatedUsers);
     setEditingUserId(null);
   };
 
   const handleDeleteClick = (userId) => {
     // Handle delete logic here, e.g., make an API call to delete the user
     const updatedUsers = users.filter((user) => user._id !== userId);
-    setUsers(updatedUsers);
+    // setUsers(updatedUsers);
   };
 
   const handleInputChange = (e) => {
@@ -227,8 +219,9 @@ const ProductPerformance = () => {
                       size="small"
                       sx={{ minWidth: 120 }}
                     >
-                      <MenuItem value={1}>Admin</MenuItem>
-                      <MenuItem value={0}>User</MenuItem>
+                      <MenuItem value={"Admin"}>Admin</MenuItem>
+                      <MenuItem value={"User"}>User</MenuItem>
+                      <MenuItem value={"TeamLeader"}>TeamLeader</MenuItem>
                     </Select>
                   ) : (
                     <Chip
@@ -238,7 +231,7 @@ const ProductPerformance = () => {
                         color: "#fff",
                       }}
                       size="small"
-                      label={user.role === 1 ? "Admin" : "User"}
+                      label={user.role}
                     />
                   )}
                 </TableCell>

@@ -15,6 +15,7 @@ import { IconListCheck, IconMail, IconUser } from "@tabler/icons-react";
 
 import ProfileImg from "../../../assets/images/profile/user-1.jpg";
 import ProfilePage from "./ProfileDialog";
+import { persistor } from "../../../store/store";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -28,8 +29,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    // redirect("/ui/typography");
-
+    persistor.purge();
     window.location.replace("auth/login");
   };
 

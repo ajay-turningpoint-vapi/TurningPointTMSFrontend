@@ -11,12 +11,13 @@ import {
   UPDATE_TASK_STATUS_FAILURE,
 } from "./types";
 import { ip } from "../utils/ipconfig";
+import showLottiePopup from "../views/utilities/LottiePopup";
 
 // Get tasks
 export const getTasks = () => async (dispatch) => {
   try {
     const res = await axios.get(`${ip}/api/tasks`);
-
+    console.log(res);
     dispatch({
       type: GET_TASKS,
       payload: res.data,
@@ -24,7 +25,7 @@ export const getTasks = () => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: TASK_ERROR,
-      payload: { msg: err.response.statusText, status: err.response.status },
+      payload: { message: err.response?.data.message },
     });
   }
 };
@@ -55,6 +56,7 @@ export const addTask = (formData) => async (dispatch) => {
       type: ADD_TASK,
       payload: res.data,
     });
+    await showLottiePopup("New Task Created");
   } catch (err) {
     console.log(err);
     dispatch({
@@ -66,8 +68,9 @@ export const addTask = (formData) => async (dispatch) => {
 
 // Update task
 export const updateTask = (id, formData) => async (dispatch) => {
+  console.log(id, formData);
   try {
-    const res = await axios.put(`${ip}/api/tasks/${id}`, formData);
+    const res = await axios.patch(`${ip}/api/tasks/${id}`, formData);
 
     dispatch({
       type: UPDATE_TASK,
@@ -97,7 +100,13 @@ const updateTaskStatusFailure = (error) => ({
   payload: error,
 });
 
-export const updateTaskStatus = (taskId, newStatus, reason, changesAttachments) => {
+export const updateTaskStatus = (
+  taskId,
+  newStatus,
+  reason,
+  changesAttachments,
+  updatedTaskBy
+) => {
   return async (dispatch) => {
     dispatch(updateTaskStatusRequest());
     try {
@@ -105,7 +114,9 @@ export const updateTaskStatus = (taskId, newStatus, reason, changesAttachments) 
         newStatus,
         reason,
         changesAttachments,
+       
       });
+      showLottiePopup("Task Updated");
       dispatch(updateTaskStatusSuccess(response.data.task));
     } catch (error) {
       dispatch(updateTaskStatusFailure(error.message));
@@ -122,6 +133,7 @@ export const deleteTask = (id) => async (dispatch) => {
       type: DELETE_TASK,
       payload: id,
     });
+    showLottiePopup("Task Deleted Successfully!");
   } catch (err) {
     dispatch({
       type: TASK_ERROR,

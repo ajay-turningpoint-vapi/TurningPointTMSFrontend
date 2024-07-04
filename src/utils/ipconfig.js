@@ -1,1 +1,1 @@
-export const ip="http://localhost:5000"
+export const ip = "http://192.168.1.126:5001";

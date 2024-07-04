@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import DashboardCard from "../../components/shared/DashboardCard";
+import ProfileImg from "../../assets/images/profile/user-1.jpg";
 import {
   Typography,
   Box,
@@ -33,23 +34,54 @@ import {
   Popover,
   InputAdornment,
   OutlinedInput,
+  Alert,
+  styled,
+  keyframes,
 } from "@mui/material";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
 
 import moment from "moment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useDispatch, useSelector } from "react-redux";
-import { getTasks, updateTaskStatus } from "../../actions/taskActions";
+import {
+  deleteTask,
+  getTasks,
+  updateTask,
+  updateTaskStatus,
+} from "../../actions/taskActions";
+import showLottiePopup from "./LottiePopup";
+import { getUsers } from "../../actions/userActions";
+const blink = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+`;
+const CustomAlert = styled(Alert)(({ theme }) => ({
+  borderColor: '#ffae1f',
+  backgroundColor: '#fef5e5',
+  "& .MuiAlert-icon": {
+    fontSize: "1.3rem",
+    animation: `${blink} 3s infinite`,
+  },
+  "& .MuiAlert-message .blinking-message": {
+    fontSize: "1.3rem",
+    animation: `${blink} 3s infinite`,
+  },
+}));
 const TypographyPage = () => {
   const dispatch = useDispatch();
   const { tasks, loading, error } = useSelector((state) => state.tasks);
-
+  const { users } = useSelector((state) => state.users);
+  const { user } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
   const [role, setRole] = useState("User");
   const [allTasks, setAllTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openSmallDialog, setOpenSmallDialog] = useState(false);
+  const [newAssignTo, setNewAssignTo] = useState("");
+  const [newReason, setNewReason] = useState("");
   const [selectedTask, setSelectedTask] = useState(null);
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
@@ -63,6 +95,15 @@ const TypographyPage = () => {
     priority: selectedTask?.priority,
     dueDate: selectedTask?.dueDate,
   });
+  const [errors, setErrors] = useState({});
+  const validate = () => {
+    let tempErrors = {};
+    tempErrors.newAssignTo = newAssignTo ? "" : "Assign To is required";
+    tempErrors.newReason = newReason ? "" : "Reason is required";
+    setErrors(tempErrors);
+    return Object.values(tempErrors).every((x) => x === "");
+  };
+
   const handleStatusChangeClick = (changedStatus) => {
     setShowReason(true);
     setNewStatus(changedStatus);
@@ -74,6 +115,7 @@ const TypographyPage = () => {
 
   useEffect(() => {
     dispatch(getTasks());
+    dispatch(getUsers());
   }, [dispatch]);
 
   useEffect(() => {
@@ -93,9 +135,42 @@ const TypographyPage = () => {
     setSearchTerm(event.target.value);
   };
 
+  const handleSmallOpen = () => {
+    setOpenSmallDialog(true);
+  };
+
+  const handleSmallClose = () => {
+    setNewAssignTo("");
+    setNewReason("");
+    setOpenSmallDialog(false);
+  };
+
+  const handleSmallSubmit = (e, taskId) => {
+    e.preventDefault();
+    if (validate()) {
+      const formData = {
+        transfer: {
+          reasonToTransfer: newReason,
+        },
+        assignTo: newAssignTo,
+      };
+      dispatch(updateTask(taskId, formData));
+      handleSmallClose();
+    }
+  };
+
   const handleSave = (e, taskId) => {
     e.preventDefault();
-    dispatch(updateTaskStatus(taskId, newStatus, reason, changesAttachments));
+    dispatch(
+      updateTaskStatus(
+        taskId,
+        newStatus,
+        reason,
+        changesAttachments,
+        user?.emailID
+      )
+    );
+    showLottiePopup("Task Updated");
     setShowReason(false);
     setReason("");
     setNewStatus("");
@@ -132,12 +207,12 @@ const TypographyPage = () => {
   };
 
   const calculateTicketStats = () => {
-    const total = allTasks.length;
-    const pending = allTasks.filter(
-      (task) => task.status === "In-Progress"
-    ).length;
-    const open = allTasks.filter((task) => task.status === "Open").length;
-    const closed = allTasks.filter((task) => task.status === "Close").length;
+    const total = allTasks?.length || 0;
+    const pending =
+      allTasks?.filter((task) => task.status === "In Progress").length || 0;
+    const open = allTasks?.filter((task) => task.status === "Open").length || 0;
+    const closed =
+      allTasks?.filter((task) => task.status === "Close").length || 0;
 
     return { total, pending, open, closed };
   };
@@ -152,12 +227,9 @@ const TypographyPage = () => {
   const handleDialogClose = () => {
     setOpenDialog(false);
     setShowReason(false);
-    setEditMode(false)
+    setEditMode(false);
   };
 
-  const handleEditClick = (task) => {
-    // Implement edit functionality
-  };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedTask((prevTask) => ({
@@ -167,19 +239,17 @@ const TypographyPage = () => {
   };
 
   const handleEditSave = () => {
-    // Add logic to save the edited task
-    // For now, just log the edited task
     console.log(editedTask);
     setEditMode(false);
   };
 
-  const handleDeleteClick = (task) => {
-    // Implement delete functionality
+  const handleDeleteClick = (id) => {
+    dispatch(deleteTask(id));
   };
 
   return (
     <div style={{ width: "fit-content" }}>
-      <DashboardCard title="All Tickets">
+      <DashboardCard title="All Tasks">
         <Box sx={{ mb: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={3}>
@@ -477,21 +547,76 @@ const TypographyPage = () => {
                       </TableCell>
                     )}
                     <TableCell>
-                     
-                    <IconButton
+                      <IconButton
                         aria-label="view"
                         color="primary"
                         onClick={() => handleViewClick(taskDetail)}
                       >
                         <VisibilityIcon />
                       </IconButton>
+                      <IconButton onClick={handleSmallOpen}>
+                        <SyncAltIcon />
+                      </IconButton>
                       <IconButton
                         aria-label="delete"
-                        onClick={() => handleDeleteClick(taskDetail)}
+                        color="error"
+                        onClick={() => handleDeleteClick(taskDetail._id)}
                       >
                         <DeleteIcon />
                       </IconButton>
-                     
+
+                      <Dialog open={openSmallDialog} onClose={handleSmallClose}>
+                        <DialogTitle>Want To Transfer Task ?</DialogTitle>
+                        <DialogContent>
+                          <FormControl fullWidth margin="normal">
+                            <TextField
+                              labelId="select-label"
+                              value={newAssignTo}
+                              label="Assign To"
+                              onChange={(e) => setNewAssignTo(e.target.value)}
+                              fullWidth
+                              required
+                              select
+                              error={!!errors.newAssignTo}
+                              helperText={errors.newAssignTo}
+                            >
+                              {users.map((option) => (
+                                <MenuItem
+                                  key={option._id}
+                                  value={option.emailID}
+                                >
+                                  {option.emailID}
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          </FormControl>
+                          <TextField
+                            label="Enter Reason to change..."
+                            multiline
+                            required
+                            rows={4}
+                            value={newReason}
+                            onChange={(e) => setNewReason(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.newReason}
+                            helperText={errors.newReason}
+                          />
+                        </DialogContent>
+                        <DialogActions>
+                          <Button onClick={handleSmallClose} color="error">
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={(e) =>
+                              handleSmallSubmit(e, taskDetail._id)
+                            }
+                            color="primary"
+                          >
+                            Submit
+                          </Button>
+                        </DialogActions>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -503,310 +628,417 @@ const TypographyPage = () => {
         <Dialog
           open={openDialog}
           onClose={handleDialogClose}
-          maxWidth="sm"
+          maxWidth="md"
           fullWidth
         >
           <DialogTitle>Task Details</DialogTitle>
           <DialogContent>
-            <Box
-              sx={{ mt: 2 }}
-              style={{
-                border: "1px solid gray",
-                borderRadius: "10px",
-                padding: "10px",
-              }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Title:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {editMode ? (
-                    <TextField
-                      fullWidth
-                      name="title"
-                      value={editedTask.title}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <Typography variant="body1" gutterBottom>
-                      {selectedTask.title}
-                    </Typography>
-                  )}
-                </Grid>
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Description:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {editMode ? (
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      name="description"
-                      value={editedTask.description}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <Typography variant="body1" gutterBottom>
-                      {selectedTask.description}
-                    </Typography>
-                  )}
-                </Grid>
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Category:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant="body1" gutterBottom>
-                    {selectedTask.category}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Created By:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant="body1" gutterBottom>
-                    {selectedTask.createdBy}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Assigned To:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {editMode ? (
-                    <TextField
-                      fullWidth
-                      name="assignTo"
-                      value={editedTask.assignTo}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <Typography variant="body1" gutterBottom>
-                      {selectedTask.assignTo}
-                    </Typography>
-                  )}
-                </Grid>
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Priority:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {editMode ? (
-                    <TextField
-                      select
-                      fullWidth
-                      name="priority"
-                      value={editedTask.priority}
-                      onChange={handleInputChange}
+            <Card sx={{ mt: 2 }} variant="outlined">
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
                     >
-                      <MenuItem value="High">High</MenuItem>
-                      <MenuItem value="Medium">Medium</MenuItem>
-                      <MenuItem value="Low">Low</MenuItem>
-                    </TextField>
-                  ) : (
+                      Title:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {editMode ? (
+                      <TextField
+                        fullWidth
+                        name="title"
+                        value={editedTask.title}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <Typography variant="body1" gutterBottom>
+                        {selectedTask.title}
+                      </Typography>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Description:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {editMode ? (
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        name="description"
+                        value={editedTask.description}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <Typography variant="body1" gutterBottom>
+                        {selectedTask.description}
+                      </Typography>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Category:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography variant="body1" gutterBottom>
+                      {selectedTask.category}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Created By:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography variant="body1" gutterBottom>
+                      {selectedTask.createdBy}
+                    </Typography>
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Assigned To:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {editMode ? (
+                      <TextField
+                        fullWidth
+                        name="assignTo"
+                        value={editedTask.assignTo}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <Typography variant="body1" gutterBottom>
+                        {selectedTask.assignTo}
+                      </Typography>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Priority:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {editMode ? (
+                      <TextField
+                        select
+                        fullWidth
+                        name="priority"
+                        value={editedTask.priority}
+                        onChange={handleInputChange}
+                      >
+                        <MenuItem value="High">High</MenuItem>
+                        <MenuItem value="Medium">Medium</MenuItem>
+                        <MenuItem value="Low">Low</MenuItem>
+                      </TextField>
+                    ) : (
+                      <Chip
+                        sx={{
+                          px: "4px",
+                          backgroundColor: getPriorityColor(
+                            selectedTask.priority
+                          ),
+                          color: "#fff",
+                        }}
+                        style={{ fontWeight: "900" }}
+                        size="small"
+                        label={selectedTask.priority}
+                      />
+                    )}
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Status:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
                     <Chip
-                      sx={{
-                        px: "4px",
-                        backgroundColor: getPriorityColor(
-                          selectedTask.priority
-                        ),
-                        color: "#fff",
-                      }}
-                      style={{ fontWeight: "900" }}
+                      label={selectedTask.status}
+                      color={getStatusColor(selectedTask.status)}
                       size="small"
-                      label={selectedTask.priority}
                     />
-                  )}
-                </Grid>
+                  </Grid>
 
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Status:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Chip
-                    label={selectedTask.status}
-                    color={getStatusColor(selectedTask.status)}
-                    size="small"
-                  />
-                </Grid>
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Due Date:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {editMode ? (
+                      <TextField
+                        type="datetime-local"
+                        fullWidth
+                        name="dueDate"
+                        value={moment(editedTask.dueDate).format(
+                          "YYYY-MM-DDTHH:mm"
+                        )}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <Typography variant="body1" gutterBottom color={"green"}>
+                        {moment(selectedTask.dueDate).format(
+                          "DD-MMMM-YYYY HH:mm A"
+                        )}
+                      </Typography>
+                    )}
+                  </Grid>
 
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Due Date:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {editMode ? (
-                    <TextField
-                      type="datetime-local"
-                      fullWidth
-                      name="dueDate"
-                      value={moment(editedTask.dueDate).format(
-                        "YYYY-MM-DDTHH:mm"
-                      )}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <Typography variant="body1" gutterBottom color={"green"}>
-                      {moment(selectedTask.dueDate).format(
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Created At:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography variant="body1" gutterBottom>
+                      {moment(selectedTask.createdAt).format(
                         "DD-MMMM-YYYY HH:mm A"
                       )}
                     </Typography>
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Updated At:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography variant="body1" gutterBottom>
+                      {moment(selectedTask.updatedAt).format(
+                        "DD-MMMM-YYYY HH:mm A"
+                      )}
+                    </Typography>
+                  </Grid>
+
+                  {selectedTask.closedAt && (
+                    <>
+                      {" "}
+                      <Grid item xs={4}>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={600}
+                          gutterBottom
+                        >
+                          Completed At:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8}>
+                        <Typography
+                          variant="body1"
+                          gutterBottom
+                          color={"error"}
+                        >
+                          {moment(selectedTask.closedAt).format(
+                            "DD-MMMM-YYYY HH:mm A"
+                          )}
+                        </Typography>
+                      </Grid>
+                    </>
                   )}
-                </Grid>
 
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Created At:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant="body1" gutterBottom>
-                    {moment(selectedTask.createdAt).format(
-                      "DD-MMMM-YYYY HH:mm A"
-                    )}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Updated At:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant="body1" gutterBottom>
-                    {moment(selectedTask.updatedAt).format(
-                      "DD-MMMM-YYYY HH:mm A"
-                    )}
-                  </Typography>
-                </Grid>
-
-                {selectedTask.closedAt && (
-                  <>
-                    {" "}
-                    <Grid item xs={4}>
+                  <Grid item xs={4}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      gutterBottom
+                    >
+                      Attachments:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    {selectedTask.attachments &&
+                      selectedTask.attachments.map((attachment, index) => (
+                        <Box key={index} sx={{ mb: 1 }}>
+                          <Typography variant="body1" gutterBottom>
+                            {attachment.type}:{" "}
+                            <a
+                              href={attachment.path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {attachment.path}
+                            </a>
+                          </Typography>
+                        </Box>
+                      ))}
+                  </Grid>
+                  {selectedTask.transfer?.reasonToTransfer && (
+                    <Grid item xs={12}>
                       <Typography
                         variant="subtitle1"
                         fontWeight={600}
                         gutterBottom
                       >
-                        Completed At:
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography variant="body1" gutterBottom color={"error"}>
-                        {moment(selectedTask.closedAt).format(
-                          "DD-MMMM-YYYY HH:mm A"
-                        )}
-                      </Typography>
-                    </Grid>
-                  </>
-                )}
-
-                <Grid item xs={4}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Attachments:
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  {selectedTask.attachments &&
-                    selectedTask.attachments.map((attachment, index) => (
-                      <Box key={index} sx={{ mb: 1 }}>
-                        <Typography variant="body1" gutterBottom>
-                          {attachment.type}:{" "}
-                          <a
-                            href={attachment.path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {attachment.path}
-                          </a>
-                        </Typography>
-                      </Box>
-                    ))}
-                </Grid>
-                {selectedTask.statusChanges &&
-                  selectedTask.statusChanges.length > 0 && (
-                    <Grid item xs={12}>
-                      {selectedTask.statusChanges.map((change, index) => (
-                        <Box
-                          style={{
-                            border: "1px solid ",
-                            borderRadius: "5px",
-                            marginBottom: "10px",
-                            padding: "5px",
-                          }}
-                        >
-                          <Grid container spacing={2} key={index}>
-                            <Grid item xs={4}>
+                        <CustomAlert variant="outlined" severity="warning">
+                          <span className="blinking-message">
+                            Transferred Task!
+                          </span>
+                          <Grid container style={{ marginTop: "10px" }}>
+                            <Grid item xs={12}>
+                              <span>(Whom Transfered) : </span>
                               <Chip
-                                label={change.status}
-                                color={getStatusColor(change.status)}
+                                label={selectedTask.transfer?.fromWhom}
+                                color={"primary"}
                                 size="small"
                               />
                             </Grid>
-                            <Grid item xs={8}>
+                            <Grid item xs={12} style={{ marginTop: "5px" }}>
                               <Typography variant="body1" gutterBottom>
-                                {change.reason}
+                                <span>(Reason For Transfer) : </span>{" "}
+                                {selectedTask.transfer?.reasonToTransfer}
                               </Typography>
                             </Grid>
-                            {change.changesAttachments &&
-                              change.changesAttachments.length > 0 && (
-                                <Grid item xs={12}>
-                                  <Grid container spacing={2}>
-                                    {change.changesAttachments.map(
-                                      (attachment, index) => (
-                                        <Grid item key={index}>
-                                          <img
-                                            src={attachment.path}
-                                            alt={`Attachment ${index}`}
-                                            style={{
-                                              maxWidth: "100px",
-                                              maxHeight: "100px",
-                                            }}
-                                          />
-                                        </Grid>
-                                      )
-                                    )}
-                                  </Grid>
-                                </Grid>
-                              )}
                           </Grid>
-                        </Box>
-                      ))}
+                        </CustomAlert>
+                      </Typography>
                     </Grid>
                   )}
-              </Grid>
-            </Box>
+
+                  {selectedTask.statusChanges &&
+                    selectedTask.statusChanges.length > 0 && (
+                      <Grid item xs={12}>
+                        {selectedTask.statusChanges.map((change, index) => (
+                          <Card
+                            style={{
+                              marginTop: "10px",
+                              backgroundColor: "#f2f6fa",
+                            }}
+                          >
+                            <CardContent>
+                              <Grid container spacing={2} key={index}>
+                                <Grid item xs={4}>
+                                  <Chip
+                                    label={change.status}
+                                    color={getStatusColor(change.status)}
+                                    size="small"
+                                  />
+                                </Grid>
+                                <Grid item xs={8}>
+                                  <Typography
+                                    variant="body1"
+                                    gutterBottom
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "flex-start",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Avatar
+                                      src={ProfileImg}
+                                      alt={ProfileImg}
+                                      sx={{
+                                        width: 35,
+                                        height: 35,
+                                      }}
+                                    />{" "}
+                                    <b style={{ marginLeft: "10px" }}>
+                                      ({selectedTask.currentUser})
+                                    </b>
+                                   
+                                  </Typography>
+                                  <Typography variant="body1" gutterBottom>
+                                    {change.reason}
+                                  </Typography> <span
+                                      style={{
+                                        color: "#539bff",
+                                     
+                                      }}
+                                    >
+                                     
+                                      {moment(change.changedAt).fromNow()}{" "}
+                                    </span>
+                                </Grid>
+                                {change.changesAttachments &&
+                                  change.changesAttachments.length > 0 && (
+                                    <Grid item xs={12}>
+                                      <Grid container spacing={2}>
+                                        {change.changesAttachments.map(
+                                          (attachment, index) => (
+                                            <Grid item key={index}>
+                                              <img
+                                                src={attachment.path}
+                                                alt={`Attachment ${index}`}
+                                                style={{
+                                                  maxWidth: "100px",
+                                                  maxHeight: "100px",
+                                                }}
+                                              />
+                                            </Grid>
+                                          )
+                                        )}
+                                      </Grid>
+                                    </Grid>
+                                  )}
+                              </Grid>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Grid>
+                    )}
+                </Grid>
+              </CardContent>{" "}
+            </Card>
             <Box sx={{ mt: 4 }}>
               <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                 Change Status:
               </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ mr: 2 }}
-                onClick={() => handleStatusChangeClick("Open")}
-              >
-                ReOpen
-              </Button>
+              {selectedTask.status === "Completed" && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{ mr: 2 }}
+                  onClick={() => handleStatusChangeClick("Open")}
+                >
+                  ReOpen
+                </Button>
+              )}
               <Button
                 variant="contained"
                 color="warning"
@@ -815,13 +1047,15 @@ const TypographyPage = () => {
               >
                 In-Progress
               </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => handleStatusChangeClick("Completed")}
-              >
-                Completed
-              </Button>
+              {selectedTask.status !== "Completed" && (
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => handleStatusChangeClick("Completed")}
+                >
+                  Completed
+                </Button>
+              )}
             </Box>
             {showReason && (
               <Box sx={{ mt: 4 }}>
@@ -862,7 +1096,11 @@ const TypographyPage = () => {
           <DialogActions>
             {editMode ? (
               <>
-                <Button onClick={() => setEditMode(false)} variant="outlined" color="error">
+                <Button
+                  onClick={() => setEditMode(false)}
+                  variant="outlined"
+                  color="error"
+                >
                   Cancel
                 </Button>
                 <Button
@@ -874,7 +1112,11 @@ const TypographyPage = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setEditMode(true)} variant="contained" color="success">
+              <Button
+                onClick={() => setEditMode(true)}
+                variant="contained"
+                color="success"
+              >
                 Edit
               </Button>
             )}

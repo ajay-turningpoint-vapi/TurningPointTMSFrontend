@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PageContainer from "../../components/container/PageContainer";
-
-import AuthLogin from "../authentication/auth/AuthLogin";
 import {
+  Avatar,
   Box,
   Button,
   Card,
@@ -33,6 +32,8 @@ import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import { addTask } from "../../actions/taskActions";
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
+import DashboardCard from "../../components/shared/DashboardCard";
 
 const Icons = () => {
   const navigate = useNavigate();
@@ -45,12 +46,32 @@ const Icons = () => {
   const [assignTo, setAssignTo] = useState("");
   const [priority, setPriority] = useState("");
   const [dueDate, setDueDateTime] = useState("");
-  const [reminder, setReminder] = useState("");
+  const [reminderFrequency, setReminderFrequency] = useState("");
+  const [reminderStartDate, setReminderStartDate] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioURL, setAudioURL] = useState(null);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    let tempErrors = {};
+    tempErrors.title = title ? "" : "Title is required";
+    tempErrors.description = description ? "" : "Description is required";
+    tempErrors.category = category ? "" : "Category is required";
+    tempErrors.assignTo = assignTo ? "" : "Assign To is required";
+    tempErrors.priority = priority ? "" : "Priority is required";
+    tempErrors.dueDate = dueDate ? "" : "Due Date is required";
+    if (reminderFrequency) {
+      tempErrors.reminderStartDate = reminderStartDate
+        ? ""
+        : "Reminder Start Date is required if reminder is set";
+    }
+
+    setErrors(tempErrors);
+    return Object.values(tempErrors).every((x) => x === "");
+  };
 
   useEffect(() => {
     dispatch(getUsers());
@@ -194,260 +215,318 @@ const Icons = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Handle form submission logic
-    const newTicket = {
-      title,
-      description,
-      category,
-      assignTo,
-      priority,
-      dueDate,
-      reminder,
-      attachments,
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validate()) {
+      const newTask = {
+        title,
+        description,
+        category,
+        assignTo,
+        priority,
+        dueDate,
+        attachments,
+      };
+      if (reminderFrequency && reminderStartDate) {
+        newTask.reminder = {
+          frequency: reminderFrequency,
+          startDate: reminderStartDate,
+        };
+      }
 
-    console.log("New Ticket: ", newTicket);
-
-    dispatch(addTask(newTicket));
-
-    // Navigate to another page or reset the form as needed
+      dispatch(addTask(newTask));
+    }
+    setTitle("");
+    setDescription("");
+    setCategory("");
+    setAssignTo("");
+    setPriority("");
+    setDueDateTime("");
+    setAttachments([]);
+    setLoading(false);
+    setRecording(false);
+    setMediaRecorder(null);
+    setAudioURL(null);
+    setReminderFrequency("");
+    setReminderStartDate("");
   };
 
   return (
-    <PageContainer title="Icons" name="this is Icons">
-      <Grid item display="flex" justifyContent="center" alignItems="center">
-        <Card
-          elevation={9}
-          sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "800px" }}
-        >
-          <Typography
-            variant="h4"
-            gutterBottom
-            align="center"
-            sx={{ textDecoration: "underline" }}
+    <DashboardCard title="Add New Task">
+      <PageContainer title="Icons" name="this is Icons">
+        <Grid item display="flex" justifyContent="center" alignItems="center">
+          <Card
+            elevation={9}
+            sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "800px" }}
           >
-            ADD NEW TICKET
-          </Typography>
-
-          <Stack spacing={3}>
-            <Box>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Avatar>
+                <TaskAltIcon />
+              </Avatar>{" "}
               <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="title"
+                variant="h5"
+                gutterBottom
+                align="center"
+                sx={{ textDecoration: "underline", marginLeft: "8px" }}
               >
-                Title
+                ADD NEW TICKET
               </Typography>
-              <CustomTextField
-                id="title"
-                variant="outlined"
-                fullWidth
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </Box>
+            </div>
 
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="description"
-              >
-                Description
-              </Typography>
-              <CustomTextField
-                id="description"
-                variant="outlined"
-                fullWidth
-                multiline
-                minRows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="category"
-              >
-                Category
-              </Typography>
-              <FormControl fullWidth>
-                <InputLabel id="category-label">Category</InputLabel>
-                <Select
-                  labelId="category-label"
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  input={<OutlinedInput label="Category" />}
+            <Stack spacing={3}>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="title"
                 >
-                  <MenuItem value="IT">IT</MenuItem>
-                  <MenuItem value="Finance">Finance</MenuItem>
-                  <MenuItem value="Admin">Admin</MenuItem>
-                  <MenuItem value="HR">HR</MenuItem>
-                  <MenuItem value="Sales">Sales</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="assignTo"
-              >
-                Assign To Users
-              </Typography>
-              <FormControl fullWidth>
-                <InputLabel id="assign-to-users-label">
-                  Assign To Users
-                </InputLabel>
-                <Select
-                  labelId="assign-to-users-label"
-                  id="assign-to-users"
-                  value={assignTo}
-                  onChange={(e) => setAssignTo(e.target.value)}
-                  input={<OutlinedInput label="Assign To Users" />}
-                >
-                  {users.map((option) => (
-                    <MenuItem key={option._id} value={option.emailID}>
-                      {option.emailID}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="priority"
-              >
-                Priority
-              </Typography>
-              <FormControl fullWidth>
-                <TextField
-                  inputProps={{ "aria-label": "Without label" }}
-                  label="Priority"
-                  id="priority"
-                  select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                >
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="Low">Low</MenuItem>
-                </TextField>
-              </FormControl>
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="dueDate"
-              >
-                Due Date and Time
-              </Typography>
-              <CustomTextField
-                id="dueDate"
-                type="datetime-local"
-                variant="outlined"
-                fullWidth
-                value={dueDate}
-                onChange={(e) => setDueDateTime(e.target.value)}
-              />
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="reminder"
-              >
-                Reminder
-              </Typography>
-              <FormControl fullWidth>
-                <TextField
-                  inputProps={{ "aria-label": "Without label" }}
-                  label="Reminder (optional)"
-                  id="reminder"
-                  select
-                  value={reminder}
-                  onChange={(e) => setReminder(e.target.value)}
-                >
-                  <MenuItem value="Daily">Daily</MenuItem>
-                  <MenuItem value="Weekly">Weekly</MenuItem>
-                  <MenuItem value="Monthly">Monthly</MenuItem>
-                </TextField>
-              </FormControl>
-            </Box>
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                component="label"
-                htmlFor="attachments"
-              >
-                Attachments
-              </Typography>
-              <Box display="flex" alignItems="center" gap={2}>
-                <LinkIcon
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleIconClick(".pdf")}
-                />
-                <ImageIcon
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleIconClick("image/*")}
-                />
-                <PictureAsPdfIcon
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleIconClick("application/pdf")}
-                />
-                <MicIcon
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleIconClick("audio")}
+                  Title
+                </Typography>
+                <CustomTextField
+                  id="title"
+                  variant="outlined"
+                  required
+                  label="Enter Title"
+                  fullWidth
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  error={!!errors.title}
+                  helperText={errors.title}
                 />
               </Box>
-              {loading && <CircularProgress sx={{ mt: 2 }} />}
-              {!loading &&
-                attachments.map((attachment, index) => (
-                  <Box key={index} display="flex" alignItems="center" mt={2}>
-                    {renderAttachmentPreview(attachment, index)}
-                    <IconButton onClick={() => handleDeleteAttachment(index)}>
-                      <DeleteIcon color="error" />
-                    </IconButton>
-                  </Box>
-                ))}
-            </Box>
 
-            <Box>
-              <Button
-                color="primary"
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={handleSubmit}
-              >
-                Add Ticket
-              </Button>
-            </Box>
-          </Stack>
-        </Card>
-      </Grid>
-    </PageContainer>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="description"
+                >
+                  Description
+                </Typography>
+                <CustomTextField
+                  id="description"
+                  variant="outlined"
+                  label="Enter description..."
+                  required
+                  fullWidth
+                  multiline
+                  minRows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  error={!!errors.description}
+                  helperText={errors.description}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="category"
+                >
+                  Category
+                </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    required
+                    label="Category"
+                    fullWidth
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    error={!!errors.category}
+                    helperText={errors.category}
+                    select
+                  >
+                    <MenuItem value="IT">IT</MenuItem>
+                    <MenuItem value="Finance">Finance</MenuItem>
+                    <MenuItem value="Admin">Admin</MenuItem>
+                    <MenuItem value="HR">HR</MenuItem>
+                    <MenuItem value="Sales">Sales</MenuItem>
+                  </TextField>
+                </FormControl>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="assignTo"
+                >
+                  Assign To Users
+                </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    required
+                    label="Assign To"
+                    fullWidth
+                    select
+                    value={assignTo}
+                    onChange={(e) => setAssignTo(e.target.value)}
+                    error={!!errors.assignTo}
+                    helperText={errors.assignTo}
+                  >
+                    {users.map((option) => (
+                      <MenuItem key={option._id} value={option.emailID}>
+                        {option.emailID}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </FormControl>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="priority"
+                >
+                  Priority
+                </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    inputProps={{ "aria-label": "Without label" }}
+                    label="Select Priority"
+                    required
+                    id="priority"
+                    select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    error={!!errors.priority}
+                    helperText={errors.priority}
+                  >
+                    <MenuItem value="High">High</MenuItem>
+                    <MenuItem value="Medium">Medium</MenuItem>
+                    <MenuItem value="Low">Low</MenuItem>
+                  </TextField>
+                </FormControl>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="dueDate"
+                >
+                  Due Date and Time
+                </Typography>
+                <CustomTextField
+                  id="dueDate"
+                  type="datetime-local"
+                  variant="outlined"
+                  required
+                  fullWidth
+                  value={dueDate}
+                  onChange={(e) => setDueDateTime(e.target.value)}
+                  error={!!errors.dueDate}
+                  helperText={errors.dueDate}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="reminder"
+                >
+                  Reminder
+                </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    label="Reminder Frequency (Optional)"
+                    value={reminderFrequency}
+                    onChange={(e) => setReminderFrequency(e.target.value)}
+                    select
+                    fullWidth
+                  >
+                    <MenuItem value="">Select Frequency</MenuItem>
+                    <MenuItem value="Daily">Daily</MenuItem>
+                    <MenuItem value="Weekly">Weekly</MenuItem>
+                    <MenuItem value="Monthly">Monthly</MenuItem>
+                  </TextField>
+                  {reminderFrequency && (
+                    <TextField
+                      label="Reminder Start Date"
+                      type="datetime-local"
+                      value={reminderStartDate}
+                      onChange={(e) => setReminderStartDate(e.target.value)}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      style={{ marginTop: "16px" }}
+                      error={!!errors.reminderStartDate}
+                      helperText={errors.reminderStartDate}
+                    />
+                  )}
+                </FormControl>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="attachments"
+                >
+                  Attachments
+                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <LinkIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick(".pdf")}
+                  />
+                  <ImageIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick("image/*")}
+                  />
+                  <PictureAsPdfIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick("application/pdf")}
+                  />
+                  <MicIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick("audio")}
+                  />
+                </Box>
+                {loading && <CircularProgress sx={{ mt: 2 }} />}
+                {!loading &&
+                  attachments.map((attachment, index) => (
+                    <Box key={index} display="flex" alignItems="center" mt={2}>
+                      {renderAttachmentPreview(attachment, index)}
+                      <IconButton onClick={() => handleDeleteAttachment(index)}>
+                        <DeleteIcon color="error" />
+                      </IconButton>
+                    </Box>
+                  ))}
+              </Box>
+
+              <Box>
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  onClick={handleSubmit}
+                >
+                  Add Ticket
+                </Button>
+              </Box>
+            </Stack>
+          </Card>
+        </Grid>
+      </PageContainer>
+    </DashboardCard>
   );
 };
 

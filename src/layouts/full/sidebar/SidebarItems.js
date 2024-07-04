@@ -4,20 +4,19 @@ import { useLocation } from "react-router";
 import { Box, List } from "@mui/material";
 import NavItem from "./NavItem";
 import NavGroup from "./NavGroup/NavGroup";
-import { getProfile } from "../../../api/authApi";
-
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 const SidebarItems = () => {
+  const { user } = useSelector((state) => state.auth);
   const { pathname } = useLocation();
-  const [role, setRole] = useState(0);
   const pathDirect = pathname;
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const profile = await getProfile();
-      setRole(profile.data.role);
-    };
-    fetchProfile();
-  }, []);
-  const itemsToRender = role === 1 ? Menuitems : MenuitemsForUsers;
+  if (user?.role === null) {
+    return <Navigate to="/auth/login" />;
+  }
+  const itemsToRender =
+    user?.role === "Admin" || user?.role === "TeamLeader"
+      ? Menuitems
+      : MenuitemsForUsers;
 
   return (
     <Box sx={{ px: 3 }}>

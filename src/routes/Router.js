@@ -2,6 +2,8 @@ import React, { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import Loadable from "../layouts/full/shared/loadable/Loadable";
 import PrivateRoute from "./PrivateRoute";
+import NewUser from "../views/dashboard/components/NewUser";
+import VoiceRecorder from "../views/icons/VoiceRecorder";
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import("../layouts/full/FullLayout")));
 const BlankLayout = Loadable(
@@ -67,23 +69,33 @@ const Router = [
       },
       {
         path: "/all-users",
-        element: <PrivateRoute allowedRoles={["Admin"]} />,
+        element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,
         children: [
           { path: "/all-users", exact: true, element: <SamplePage /> },
         ],
       },
       {
-        path: "/add-tickets",
+        path: "/create-user",
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
-        children: [{ path: "/add-tickets", exact: true, element: <Icons /> }],
+        children: [{ path: "/create-user", exact: true, element: <NewUser /> }],
       },
       {
-        path: "/all-tickets",
+        path: "/voice",
+        element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
+        children: [{ path: "/voice", exact: true, element: <VoiceRecorder /> }],
+      },
+      {
+        path: "/add-task",
+        element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
+        children: [{ path: "/add-task", exact: true, element: <Icons /> }],
+      },
+      {
+        path: "/all-tasks",
         element: (
           <PrivateRoute allowedRoles={["User", "TeamLeader", "Admin"]} />
         ),
         children: [
-          { path: "/all-tickets", exact: true, element: <TypographyPage /> },
+          { path: "/all-tasks", exact: true, element: <TypographyPage /> },
         ],
       },
       { path: "/ui/shadow", exact: true, element: <Shadow /> },
