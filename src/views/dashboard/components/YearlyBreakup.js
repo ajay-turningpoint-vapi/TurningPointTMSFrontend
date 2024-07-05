@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -8,12 +8,40 @@ import {
   Avatar,
   Card,
   CardContent,
+  Button,
+  Box,
+  Modal,
 } from "@mui/material";
 import { IconArrowUpLeft } from "@tabler/icons-react";
 
 import DashboardCard from "../../../components/shared/DashboardCard";
+import { getAllUsersPerformance } from "../../../actions/dashboardActions";
 
 const YearlyBreakup = () => {
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    completedTasks: 0,
+    openTasks: 0,
+    inProgressTasks: 0,
+    completionRate: 0,
+  });
+  const [teamLeaderStats, setTeamLeaderStats] = useState([]);
+  const [selectedLeader, setSelectedLeader] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await getAllUsersPerformance();
+        setStats(response.stats);
+        setTeamLeaderStats(response.teamLeaderStatus);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const theme = useTheme();
   const primary = theme.palette.primary.main;
   const successColor = theme.palette.success.main;
@@ -22,52 +50,57 @@ const YearlyBreakup = () => {
 
   // Custom styles for grid items
   const gridItemStyleBase = {
-    border: '1px solid',
-    borderRadius: '8px',
-    padding: '16px',
-    backgroundColor: '#FFFFFF',
-    margin: '10px',
-    boxShadow: '5px 4px 8px rgba(0, 0, 0, 0.5)', // Shadow effect
+    border: "1px solid",
+    borderRadius: "8px",
+    padding: "16px",
+    backgroundColor: "#FFFFFF",
+    margin: "10px",
+    boxShadow: "5px 4px 8px #ababab", // Shadow effect
   };
 
   const gridItemStyle1 = {
     ...gridItemStyleBase,
     borderColor: primary,
-    maxHeight: '200px', // Example value for maxHeight
-    maxWidth: '300px', // Example value for maxWidth
+    maxHeight: "200px",
+    maxWidth: "300px",
   };
 
   const gridItemStyle2 = {
     ...gridItemStyleBase,
     backgroundColor: successColor,
     borderColor: successColor,
-    maxHeight: '200px', // Example value for maxHeight
-    maxWidth: '300px', // Example value for maxWidth
+    maxHeight: "200px",
+    maxWidth: "300px",
   };
 
   const gridItemStyle3 = {
     ...gridItemStyleBase,
     backgroundColor: warningColor,
     borderColor: warningColor,
-    maxHeight: '200px', // Example value for maxHeight
-    maxWidth: '300px', // Example value for maxWidth
+    maxHeight: "200px",
+    maxWidth: "300px",
   };
 
   const gridItemStyle4 = {
     ...gridItemStyleBase,
     backgroundColor: infoColor,
     borderColor: infoColor,
-    maxHeight: '200px', // Example value for maxHeight
-    maxWidth: '300px', // Example value for maxWidth
+    maxHeight: "200px",
+    maxWidth: "300px",
   };
 
-  // Sample data for donut chart
-  const donutChartData = [358, 112, 123, 123];
+  // Real-time data for donut chart
+  const donutChartData = [
+    stats.totalTasks,
+    stats.openTasks,
+    stats.inProgressTasks,
+    stats.completedTasks,
+  ];
   const donutChartLabels = [
-    'All Tasks',
-    'All Open Tasks',
-    'All In-Progress Tasks',
-    'All Completed Tasks',
+    "All Tasks",
+    "All Open Tasks",
+    "All In-Progress Tasks",
+    "All Completed Tasks",
   ];
 
   // Donut chart options
@@ -76,107 +109,350 @@ const YearlyBreakup = () => {
     colors: [primary, successColor, warningColor, infoColor],
     legend: {
       show: true,
-      position: 'bottom',
+      position: "bottom",
     },
   };
 
-  return (
-    <DashboardCard title="All Tasks Overview">
-      <Grid container spacing={3}>
-        {/* First half: Two rows with two grids each */}
-        <Grid
-          item
-          xs={12}
-          sm={7}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Grid container spacing={3}>
-            {/* First row */}
-            <Grid item xs={6} style={{ ...gridItemStyle1 }}>
-              <Typography variant="h3" fontWeight="700">
-                358
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="primary">
-                  All Tasks
-                </Typography>
-              </Stack>
-            </Grid>
-            <Grid item xs={6} style={{ ...gridItemStyle2 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                112
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: successColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All Open Tasks
-                </Typography>
-              </Stack>
-            </Grid>
+  const getTeamLeaderChartOptions = (leader) => ({
+    labels: ["Completed Tasks", "Incomplete Tasks"],
+    colors: [infoColor, warningColor],
+    legend: {
+      show: true,
+      position: "bottom",
+    },
+  });
 
-            {/* Second row */}
-            <Grid item xs={6} style={{ ...gridItemStyle3 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                123
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: warningColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All In-Progress Tasks
+  const getMemberChartOptions = (member) => ({
+    labels: ["Completed Tasks", "Open Tasks", "In-Progress Tasks"],
+    colors: [infoColor, warningColor, successColor],
+    legend: {
+      show: true,
+      position: "bottom",
+    },
+  });
+
+  return (
+    <>
+      <DashboardCard title="All Tasks Overview" >
+        <Grid container spacing={3}>
+          {/* First half: Two rows with two grids each */}
+          <Grid
+            item
+            xs={12}
+            sm={7}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Grid container spacing={3}>
+              {/* First row */}
+              <Grid item xs={6} style={{ ...gridItemStyle1 }}>
+                <Typography variant="h3" fontWeight="700">
+                  {stats.totalTasks}
                 </Typography>
-              </Stack>
-            </Grid>
-            <Grid item xs={6} style={{ ...gridItemStyle4 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                123
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: infoColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All Completed Tasks
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
+                    <IconArrowUpLeft width={20} color="#FFFFFF" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="primary"
+                  >
+                    All Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
+              <Grid item xs={6} style={{ ...gridItemStyle2 }}>
+                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                  {stats.openTasks}
                 </Typography>
-              </Stack>
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: successColor, width: 27, height: 27 }}>
+                    <IconArrowUpLeft width={20} color="#FFFFFF" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="#FFFFFF"
+                  >
+                    All Open Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
+
+              {/* Second row */}
+              <Grid item xs={6} style={{ ...gridItemStyle3 }}>
+                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                  {stats.inProgressTasks}
+                </Typography>
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: warningColor, width: 27, height: 27 }}>
+                    <IconArrowUpLeft width={20} color="#FFFFFF" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="#FFFFFF"
+                  >
+                    All In-Progress Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
+              <Grid item xs={6} style={{ ...gridItemStyle4 }}>
+                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                  {stats.completedTasks}
+                </Typography>
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: infoColor, width: 27, height: 27 }}>
+                    <IconArrowUpLeft width={20} color="#FFFFFF" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="#FFFFFF"
+                  >
+                    All Completed Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
             </Grid>
           </Grid>
+
+          {/* Second half: Donut chart */}
+          <Grid
+            item
+            xs={12}
+            sm={5}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Card>
+              <CardContent>
+                <ReactApexChart
+                  type="donut"
+                  options={DonutChartOptions}
+                  series={donutChartData}
+                  height={300}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>{" "}
+      </DashboardCard>
+      <DashboardCard title="All TeamLeader Overview" >
+        {/* Team Leader Stats */}
+        <Grid container spacing={3} mt={3}>
+          {teamLeaderStats.map((leader, index) => (
+            <Grid item xs={12} key={index} style={{ marginBottom: "16px" }}>
+              <Typography
+                variant="h6"
+                fontWeight="700"
+                style={{ marginBottom: "20px" }}
+              >
+                Team Leader: {leader.teamLeader}
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={7}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={6} style={{ ...gridItemStyle1 }}>
+                      <Typography variant="h3" fontWeight="700">
+                        {leader.leaderStats.stats.totalTasks}
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{ bgcolor: primary, width: 27, height: 27 }}
+                        >
+                          <IconArrowUpLeft width={20} color="#FFFFFF" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="primary"
+                        >
+                          All Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={6} style={{ ...gridItemStyle2 }}>
+                      <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                        {leader.leaderStats.stats.openTasks}
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{ bgcolor: successColor, width: 27, height: 27 }}
+                        >
+                          <IconArrowUpLeft width={20} color="#FFFFFF" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#FFFFFF"
+                        >
+                          All Open Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={6} style={{ ...gridItemStyle3 }}>
+                      <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                        {leader.leaderStats.stats.inProgressTasks}
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{ bgcolor: warningColor, width: 27, height: 27 }}
+                        >
+                          <IconArrowUpLeft width={20} color="#FFFFFF" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#FFFFFF"
+                        >
+                          All In-Progress Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={6} style={{ ...gridItemStyle4 }}>
+                      <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                        {leader.leaderStats.stats.completedTasks}
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{ bgcolor: infoColor, width: 27, height: 27 }}
+                        >
+                          <IconArrowUpLeft width={20} color="#FFFFFF" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#FFFFFF"
+                        >
+                          All Completed Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <Card>
+                    <CardContent>
+                      <ReactApexChart
+                        type="donut"
+                        options={getTeamLeaderChartOptions(leader)}
+                        series={[
+                          leader.leaderStats.stats.completedTasks,
+                          leader.leaderStats.stats.openTasks +
+                            leader.leaderStats.stats.inProgressTasks,
+                        ]}
+                        height={300}
+                      />
+                    </CardContent>
+                    <Box sx={{ p: 2, textAlign: "center" }}>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                        onClick={() => {
+                          console.log("Selected Leader:", leader);
+                          setSelectedLeader(leader);
+                        }}
+                      >
+                        View Team Members
+                      </Button>
+                    </Box>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Grid>
+          ))}
         </Grid>
 
-        {/* Second half: Donut chart */}
-        <Grid
-          item
-          xs={12}
-          sm={5}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Card>
-            <CardContent>
-              <ReactApexChart
-                type="donut"
-                options={DonutChartOptions}
-                series={donutChartData}
-                height={300}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </DashboardCard>
+        {selectedLeader && (
+          <Modal
+            open={!!selectedLeader}
+            onClose={() => setSelectedLeader(null)}
+            aria-labelledby="team-member-stats-modal"
+            aria-describedby="team-member-stats-description"
+          >
+            <Box sx={{ p: 4, maxWidth: "600px", margin: "auto", mt: 10 }}>
+              <Card>
+                <CardContent>
+                  <Typography
+                    id="team-member-stats-modal"
+                    variant="h6"
+                    fontWeight="700"
+                    style={{ marginBottom: "20px" }}
+                  >
+                    Team Members of {selectedLeader.teamLeader}
+                  </Typography>
+                  {selectedLeader.memberStatuses ? (
+                    selectedLeader.memberStatuses.map((member, index) => (
+                      <Card style={{ marginBottom: "10px" }}>
+                        <CardContent>
+                          {" "}
+                          <div key={index} style={{ marginBottom: "20px" }}>
+                            <Typography
+                              variant="h6"
+                              fontWeight="600"
+                              style={{ marginBottom: "12px" }}
+                            >
+                              ({member.userName})
+                            </Typography>
+                            <ReactApexChart
+                              style={{
+                                borderRadius: "10px",
+                                border: "1px solid gray",
+                              }}
+                              type="donut"
+                              options={getMemberChartOptions(member)}
+                              series={[
+                                member.stats.completedTasks,
+                                member.stats.openTasks,
+                                member.stats.inProgressTasks,
+                              ]}
+                              height={200}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Typography variant="body1">
+                      No team member data available.
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Box>
+          </Modal>
+        )}
+      </DashboardCard>
+    </>
   );
 };
 
