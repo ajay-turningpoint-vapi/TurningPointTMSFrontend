@@ -54,10 +54,6 @@ const Menuitems = [
     title: "Create User",
     icon: IconAperture,
     href: "/create-user",
-  },{ id: uniqueId(),
-    title: "Voice Recorder",
-    icon: IconCopy,
-    href: "/voice",
   },
 ];
 export const MenuitemsForUsers = [

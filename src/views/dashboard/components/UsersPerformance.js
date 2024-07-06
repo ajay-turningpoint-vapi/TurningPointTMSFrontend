@@ -37,8 +37,8 @@ const UsersPerformance = () => {
   const infoColor = theme.palette.info.main;
 
   const getUserChartOptions = (user) => ({
-    labels: ['Total Tasks', 'Completed Tasks', 'Open Tasks', 'In Progress Tasks'],
-    colors: [primary, successColor, warningColor, infoColor],
+    labels: [ 'Open Tasks', 'In Progress Tasks','Completed Tasks'],
+    colors: [successColor,warningColor ,infoColor],
     legend: {
       show: true,
       position: 'bottom',
@@ -46,7 +46,6 @@ const UsersPerformance = () => {
   });
 
   const getUserChartData = (user) => [
-    user.stats.totalTasks,
     user.stats.completedTasks,
     user.stats.openTasks,
     user.stats.inProgressTasks,
@@ -76,6 +75,5 @@ const UsersPerformance = () => {
     </DashboardCard>
   );
 };
-
 
 export default UsersPerformance;

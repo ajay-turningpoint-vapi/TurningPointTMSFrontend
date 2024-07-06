@@ -91,13 +91,11 @@ const YearlyBreakup = () => {
 
   // Real-time data for donut chart
   const donutChartData = [
-    stats.totalTasks,
     stats.openTasks,
     stats.inProgressTasks,
     stats.completedTasks,
   ];
   const donutChartLabels = [
-    "All Tasks",
     "All Open Tasks",
     "All In-Progress Tasks",
     "All Completed Tasks",
@@ -106,7 +104,7 @@ const YearlyBreakup = () => {
   // Donut chart options
   const DonutChartOptions = {
     labels: donutChartLabels,
-    colors: [primary, successColor, warningColor, infoColor],
+    colors: [successColor, warningColor, infoColor],
     legend: {
       show: true,
       position: "bottom",
@@ -123,17 +121,19 @@ const YearlyBreakup = () => {
   });
 
   const getMemberChartOptions = (member) => ({
-    labels: ["Completed Tasks", "Open Tasks", "In-Progress Tasks"],
-    colors: [infoColor, warningColor, successColor],
+    labels: ["Open Tasks", "In-Progress Tasks", "Completed Tasks"],
+    colors: [successColor, warningColor, infoColor],
     legend: {
       show: true,
       position: "bottom",
     },
   });
 
+  const isAllZero = (data) => data.every((value) => value === 0);
+
   return (
     <>
-      <DashboardCard title="All Tasks Overview" >
+      <DashboardCard title="All Tasks Overview">
         <Grid container spacing={3}>
           {/* First half: Two rows with two grids each */}
           <Grid
@@ -234,18 +234,22 @@ const YearlyBreakup = () => {
           >
             <Card>
               <CardContent>
-                <ReactApexChart
-                  type="donut"
-                  options={DonutChartOptions}
-                  series={donutChartData}
-                  height={300}
-                />
+                {isAllZero(donutChartData) ? (
+                  <Typography align="center">No tasks data available</Typography>
+                ) : (
+                  <ReactApexChart
+                    type="donut"
+                    options={DonutChartOptions}
+                    series={donutChartData}
+                    height={300}
+                  />
+                )}
               </CardContent>
             </Card>
           </Grid>
-        </Grid>{" "}
+        </Grid>
       </DashboardCard>
-      <DashboardCard title="All TeamLeader Overview" >
+      <DashboardCard title="All TeamLeader Overview">
         {/* Team Leader Stats */}
         <Grid container spacing={3} mt={3}>
           {teamLeaderStats.map((leader, index) => (
@@ -361,96 +365,90 @@ const YearlyBreakup = () => {
                 <Grid item xs={12} sm={5}>
                   <Card>
                     <CardContent>
-                      <ReactApexChart
-                        type="donut"
-                        options={getTeamLeaderChartOptions(leader)}
-                        series={[
-                          leader.leaderStats.stats.completedTasks,
-                          leader.leaderStats.stats.openTasks +
-                            leader.leaderStats.stats.inProgressTasks,
-                        ]}
-                        height={300}
-                      />
-                    </CardContent>
-                    <Box sx={{ p: 2, textAlign: "center" }}>
+                      {isAllZero([
+                        leader.leaderStats.stats.completedTasks,
+                        leader.leaderStats.stats.openTasks +
+                          leader.leaderStats.stats.inProgressTasks,
+                      ]) ? (
+                        <Typography align="center">
+                          No tasks data available
+                        </Typography>
+                      ) : (
+                        <ReactApexChart
+                          type="donut"
+                          options={getTeamLeaderChartOptions(leader)}
+                          series={[
+                            leader.leaderStats.stats.completedTasks,
+                            leader.leaderStats.stats.openTasks +
+                              leader.leaderStats.stats.inProgressTasks,
+                          ]}
+                          height={300}
+                        />
+                      )}
                       <Button
-                        color="primary"
-                        variant="outlined"
-                        style={{ padding: "8px 16px", cursor: "pointer" }}
-                        onClick={() => {
-                          console.log("Selected Leader:", leader);
-                          setSelectedLeader(leader);
+                        variant="contained"
+                        onClick={() =>
+                          setSelectedLeader(
+                            selectedLeader === index ? null : index
+                          )
+                        }
+                        style={{
+                          marginTop: "20px",
+                          display: "block",
+                          marginLeft: "auto",
+                          marginRight: "auto",
                         }}
                       >
-                        View Team Members
+                        {selectedLeader === index
+                          ? "Hide Team Members"
+                          : "View Team Members"}
                       </Button>
-                    </Box>
+                    </CardContent>
                   </Card>
                 </Grid>
               </Grid>
-            </Grid>
-          ))}
-        </Grid>
-
-        {selectedLeader && (
-          <Modal
-            open={!!selectedLeader}
-            onClose={() => setSelectedLeader(null)}
-            aria-labelledby="team-member-stats-modal"
-            aria-describedby="team-member-stats-description"
-          >
-            <Box sx={{ p: 4, maxWidth: "600px", margin: "auto", mt: 10 }}>
-              <Card>
-                <CardContent>
-                  <Typography
-                    id="team-member-stats-modal"
-                    variant="h6"
-                    fontWeight="700"
-                    style={{ marginBottom: "20px" }}
-                  >
-                    Team Members of {selectedLeader.teamLeader}
-                  </Typography>
-                  {selectedLeader.memberStatuses ? (
-                    selectedLeader.memberStatuses.map((member, index) => (
-                      <Card style={{ marginBottom: "10px" }}>
+              {selectedLeader === index && (
+                <Grid container spacing={3} mt={3}>
+                  {leader?.memberStatuses.map((member, idx) => (
+                    <Grid item xs={12} sm={4} key={idx}>
+                      <Typography
+                        variant="h6"
+                        fontWeight="700"
+                        style={{ marginBottom: "20px" }}
+                      >
+                        Team Member: {member.userName}
+                      </Typography>
+                      <Card>
                         <CardContent>
-                          {" "}
-                          <div key={index} style={{ marginBottom: "20px" }}>
-                            <Typography
-                              variant="h6"
-                              fontWeight="600"
-                              style={{ marginBottom: "12px" }}
-                            >
-                              ({member.userName})
+                          {isAllZero([
+                            member.stats.completedTasks,
+                            member.stats.openTasks,
+                            member.stats.inProgressTasks,
+                          ]) ? (
+                            <Typography align="center">
+                              Nothing Assigned!
                             </Typography>
+                          ) : (
                             <ReactApexChart
-                              style={{
-                                borderRadius: "10px",
-                                border: "1px solid gray",
-                              }}
                               type="donut"
                               options={getMemberChartOptions(member)}
                               series={[
-                                member.stats.completedTasks,
                                 member.stats.openTasks,
                                 member.stats.inProgressTasks,
+                                member.stats.completedTasks,
                               ]}
-                              height={200}
+                              height={250}
                             />
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
-                    ))
-                  ) : (
-                    <Typography variant="body1">
-                      No team member data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Box>
-          </Modal>
-        )}
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </Grid>
+          ))}
+        </Grid>
       </DashboardCard>
     </>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PageContainer from "../../components/container/PageContainer";
 import {
   Avatar,
@@ -17,6 +17,7 @@ import {
   Select,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
@@ -55,6 +56,12 @@ const Icons = () => {
   const [audioURL, setAudioURL] = useState(null);
   const [errors, setErrors] = useState({});
 
+  const [counter, setCounter] = useState(0); // Counter state for recording duration
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const intervalRef = useRef(null);
+
+  const audioRef = useRef(null);
   const validate = () => {
     let tempErrors = {};
     tempErrors.title = title ? "" : "Title is required";
@@ -82,41 +89,69 @@ const Icons = () => {
       .query({ name: "microphone" })
       .then((permissionStatus) => {
         if (permissionStatus.state === "granted") {
-          navigator.mediaDevices
-            .getUserMedia({ audio: true })
-            .then((stream) => {
-              const recorder = new MediaRecorder(stream);
-              recorder.ondataavailable = (e) => {
-                const audioBlob = new Blob([e.data], { type: "audio/wav" });
-                const url = URL.createObjectURL(audioBlob);
-                setAttachments((prevAttachments) => [
-                  ...prevAttachments,
-                  {
-                    type: "audio",
-                    path: url,
-                    name: "recorded_audio.wav",
-                  },
-                ]);
-              };
-              recorder.start();
-              setMediaRecorder(recorder);
-              setRecording(true);
-            })
-            .catch((error) => {
-              console.log("Error accessing microphone:", error);
-              // Handle error gracefully, e.g., show a message to the user
-            });
+          startRecording();
         } else if (permissionStatus.state === "prompt") {
-          // Prompt user to grant permission
-          navigator.mediaDevices
-            .getUserMedia({ audio: true })
-            .then(/* handle successful access */)
-            .catch(/* handle error */);
+          // Handle prompt state
         } else {
-          // Permission denied or unavailable
-          console.log("Microphone permission denied or unavailable");
-          // Handle error gracefully, e.g., show a message to the user
+          alert("Microphone permission denied or unavailable");
+          // Handle error gracefully
         }
+      })
+      .catch((error) => {
+        alert("Error querying microphone permission:", error);
+        // Handle error gracefully
+      });
+  };
+
+  const startRecording = () => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const recorder = new MediaRecorder(stream);
+        let chunks = [];
+        recorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: "audio/wav" });
+          const url = URL.createObjectURL(audioBlob);
+          setAttachments((prevAttachments) => [
+            ...prevAttachments,
+            {
+              type: "audio",
+              path: url,
+              name: "recorded_audio.wav",
+            },
+          ]);
+          setAudioURL(url);
+        };
+
+        // Clear previous interval if exists
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+
+        recorder.start();
+        setMediaRecorder(recorder);
+        setRecording(true);
+
+        // Start counter
+        const timer = setInterval(() => {
+          setCounter((prevCounter) => prevCounter + 1);
+        }, 1000);
+
+        // Save interval reference to clear later
+        intervalRef.current = timer;
+
+        // Stop recording after 30 seconds (or any desired duration)
+        setTimeout(() => {
+          handleStopRecording();
+        }, 30000); // 30 seconds
+      })
+      .catch((error) => {
+        alert("Error accessing microphone:", error);
+        // Handle error gracefully, e.g., show a message to the user
       });
   };
 
@@ -124,6 +159,9 @@ const Icons = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setRecording(false);
+      setCounter(0); // Reset counter
+      clearInterval(intervalRef.current); // Clear interval
+      intervalRef.current = null; // Clear interval reference
     }
   };
 
@@ -161,15 +199,21 @@ const Icons = () => {
   };
 
   const handlePlayAudio = (url) => {
-    const audio = new Audio(url);
-    audio.play();
+    if (audioRef.current) {
+      audioRef.current.src = url;
+      audioRef.current.play();
+      audioRef.current.ontimeupdate = () => {
+        setCurrentTime(audioRef.current.currentTime);
+        setDuration(audioRef.current.duration);
+      };
+    }
   };
 
-  const handlePauseAudio = (url) => {
-    const audio = new Audio(url);
-    audio.pause();
+  const handlePauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
   };
-
   const handleDeleteAttachment = (index) => {
     const updatedAttachments = [...attachments];
     updatedAttachments.splice(index, 1);
@@ -188,28 +232,32 @@ const Icons = () => {
       case "audio":
         return (
           <Box display="flex" alignItems="center">
-            {recording ? (
-              <IconButton onClick={handleStopRecording}>
-                <StopCircleIcon color="error" />
-              </IconButton>
-            ) : (
-              <IconButton onClick={handleStartRecording}>
+            <Tooltip>
+              <IconButton>
                 <MicIcon color="primary" />
               </IconButton>
-            )}
+            </Tooltip>
+
             <Typography ml={1}>{attachment.name}</Typography>
             {audioURL === attachment.path ? (
               <>
                 <IconButton onClick={() => handlePlayAudio(attachment.path)}>
                   <PlayCircleOutlineIcon />
                 </IconButton>
-                <IconButton onClick={() => handlePauseAudio(attachment.path)}>
+                <IconButton onClick={handlePauseAudio}>
                   <PauseCircleOutlineIcon />
                 </IconButton>
+                <Box display="flex" alignItems="center" ml={1}>
+                  <progress value={currentTime} max={duration} />
+                  <Typography ml={1}>
+                    {Math.floor(currentTime)} / {Math.floor(duration)} sec
+                  </Typography>
+                </Box>
               </>
             ) : null}
           </Box>
         );
+
       default:
         return null;
     }
@@ -249,6 +297,7 @@ const Icons = () => {
     setAudioURL(null);
     setReminderFrequency("");
     setReminderStartDate("");
+    setCounter(0); // Reset counter after submission
   };
 
   return (
@@ -275,7 +324,7 @@ const Icons = () => {
                 align="center"
                 sx={{ textDecoration: "underline", marginLeft: "8px" }}
               >
-                ADD NEW TICKET
+                ADD NEW TASK
               </Typography>
             </div>
 
@@ -292,8 +341,8 @@ const Icons = () => {
                 <CustomTextField
                   id="title"
                   variant="outlined"
+                  label="Enter Title..."
                   required
-                  label="Enter Title"
                   fullWidth
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -494,11 +543,18 @@ const Icons = () => {
                     sx={{ cursor: "pointer" }}
                     onClick={() => handleIconClick("application/pdf")}
                   />
-                  <MicIcon
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => handleIconClick("audio")}
-                  />
+                  <Tooltip title="Record Audio">
+                    <IconButton onClick={() => handleIconClick("audio")}>
+                      {recording ? <StopCircleIcon /> : <MicIcon />}
+                    </IconButton>
+                  </Tooltip>
+                  {recording && (
+                    <Grid item>
+                      <Typography>Recording: {counter} seconds</Typography>
+                    </Grid>
+                  )}
                 </Box>
+
                 {loading && <CircularProgress sx={{ mt: 2 }} />}
                 {!loading &&
                   attachments.map((attachment, index) => (
@@ -519,8 +575,9 @@ const Icons = () => {
                   fullWidth
                   onClick={handleSubmit}
                 >
-                  Add Ticket
+                  Add Task
                 </Button>
+                <audio ref={audioRef}></audio>
               </Box>
             </Stack>
           </Card>

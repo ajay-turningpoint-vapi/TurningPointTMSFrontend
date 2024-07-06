@@ -58,8 +58,8 @@ const blink = keyframes`
   50% { opacity: 0; }
 `;
 const CustomAlert = styled(Alert)(({ theme }) => ({
-  borderColor: '#ffae1f',
-  backgroundColor: '#fef5e5',
+  borderColor: "#ffae1f",
+  backgroundColor: "#fef5e5",
   "& .MuiAlert-icon": {
     fontSize: "1.3rem",
     animation: `${blink} 3s infinite`,
@@ -275,6 +275,29 @@ const TypographyPage = () => {
                   </Typography>
                 </CardContent>
               </Card>
+            </Grid> <Grid item xs={3}>
+              <Card
+                onClick={() => handleClickCard("Open")}
+                sx={{
+                  cursor: "pointer",
+                  transition: "transform 0.2s",
+                  "&:hover": { transform: "scale(1.05)" },
+                  height: "120px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                style={{ backgroundColor: "rgb(230, 255, 250)" }}
+              >
+                <CardContent style={{ color: "rgb(19, 222, 185)" }}>
+                  <Typography variant="h4" align="center">
+                    {open}
+                  </Typography>
+                  <Typography variant="h6" align="center" gutterBottom>
+                    Open Tasks
+                  </Typography>
+                </CardContent>
+              </Card>
             </Grid>
             <Grid item xs={3}>
               <Card
@@ -300,30 +323,7 @@ const TypographyPage = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={3}>
-              <Card
-                onClick={() => handleClickCard("Open")}
-                sx={{
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                  "&:hover": { transform: "scale(1.05)" },
-                  height: "120px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                style={{ backgroundColor: "rgb(230, 255, 250)" }}
-              >
-                <CardContent style={{ color: "rgb(19, 222, 185)" }}>
-                  <Typography variant="h4" align="center">
-                    {open}
-                  </Typography>
-                  <Typography variant="h6" align="center" gutterBottom>
-                    Open Tasks
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+           
             <Grid item xs={3}>
               <Card
                 onClick={() => handleClickCard("Close")}
@@ -409,7 +409,7 @@ const TypographyPage = () => {
                 </TableCell>
                 <TableCell>
                   <Typography variant="h6" fontWeight={600}>
-                    Due Date
+                    Due On
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -417,13 +417,13 @@ const TypographyPage = () => {
                     Updated Time
                   </Typography>
                 </TableCell>
-                {role === 0 && (
+                
                   <TableCell>
                     <Typography variant="h6" fontWeight={600}>
                       Transfer Ticket
                     </Typography>
                   </TableCell>
-                )}
+                
                 <TableCell>
                   <Typography variant="h6" fontWeight={600}>
                     Actions
@@ -512,7 +512,7 @@ const TypographyPage = () => {
                         variant="subtitle2"
                         style={{ color: "#3f51b5" }}
                       >
-                        {moment(taskDetail.createdTimeStamp).fromNow()}
+                        {moment(taskDetail.updatedAt).fromNow()}
                       </Typography>
                     </TableCell>
 
@@ -981,19 +981,17 @@ const TypographyPage = () => {
                                     <b style={{ marginLeft: "10px" }}>
                                       ({selectedTask.currentUser})
                                     </b>
-                                   
                                   </Typography>
                                   <Typography variant="body1" gutterBottom>
                                     {change.reason}
-                                  </Typography> <span
-                                      style={{
-                                        color: "#539bff",
-                                     
-                                      }}
-                                    >
-                                     
-                                      {moment(change.changedAt).fromNow()}{" "}
-                                    </span>
+                                  </Typography>{" "}
+                                  <span
+                                    style={{
+                                      color: "#539bff",
+                                    }}
+                                  >
+                                    {moment(change.changedAt).fromNow()}{" "}
+                                  </span>
                                 </Grid>
                                 {change.changesAttachments &&
                                   change.changesAttachments.length > 0 && (
@@ -1039,14 +1037,16 @@ const TypographyPage = () => {
                   ReOpen
                 </Button>
               )}
-              <Button
-                variant="contained"
-                color="warning"
-                sx={{ mr: 2 }}
-                onClick={() => handleStatusChangeClick("In Progress")}
-              >
-                In-Progress
-              </Button>
+              {selectedTask.status !== "In Progress" && (
+                <Button
+                  variant="contained"
+                  color="warning"
+                  sx={{ mr: 2 }}
+                  onClick={() => handleStatusChangeClick("In Progress")}
+                >
+                  In-Progress
+                </Button>
+              )}
               {selectedTask.status !== "Completed" && (
                 <Button
                   variant="contained"

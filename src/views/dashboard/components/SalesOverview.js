@@ -11,7 +11,7 @@ const SalesOverview = () => {
 
   const theme = useTheme();
   const primary = theme.palette.primary.main;
-  const secondary = theme.palette.secondary.main;
+  const secondary = theme.palette.success.main;
   const warning = theme.palette.warning.main;
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const SalesOverview = () => {
       },
       height: 370,
     },
-    colors: [primary, secondary, warning],
+    colors: [secondary, warning, primary],
     plotOptions: {
       bar: {
         horizontal: false,
@@ -57,10 +57,15 @@ const SalesOverview = () => {
       colors: ["transparent"],
     },
     dataLabels: {
-      enabled: false,
+      enabled: true, // Enable data labels
+      formatter: (val) => val, // Customize the format of the labels if needed
+      style: {
+        fontSize: '12px',
+        colors: ['#fff']
+      }
     },
     legend: {
-      show: false,
+      show: true, // Show legend
     },
     grid: {
       borderColor: "rgba(0,0,0,0.1)",
@@ -92,7 +97,6 @@ const SalesOverview = () => {
       name: "Open Tasks",
       data: categoryStats.map((stat) => stat.openTasks), // Adjust to map to the appropriate data field
     },
-
     {
       name: "In Progress Tasks",
       data: categoryStats.map((stat) => stat.inProgressTasks), // Adjust to map to the appropriate data field
@@ -103,27 +107,8 @@ const SalesOverview = () => {
     },
   ];
 
-  const handleChange = (event) => {
-    setMonth(event.target.value);
-  };
-
   return (
-    <DashboardCard
-      title="Tasks Overview"
-      action={
-        <Select
-          labelId="month-dd"
-          id="month-dd"
-          value={month}
-          size="small"
-          onChange={handleChange}
-        >
-          <MenuItem value="1">January 2024</MenuItem>
-          <MenuItem value="2">February 2024</MenuItem>
-          {/* Add more months as needed */}
-        </Select>
-      }
-    >
+    <DashboardCard title="Tasks Overview">
       <Chart
         options={optionsColumnChart}
         series={seriesColumnChart}
@@ -133,5 +118,6 @@ const SalesOverview = () => {
     </DashboardCard>
   );
 };
+
 
 export default SalesOverview;
