@@ -85,10 +85,12 @@ const Icons = () => {
   }, []);
 
   const handleStartRecording = () => {
+    console.log("t");
     navigator.permissions
       .query({ name: "microphone" })
       .then((permissionStatus) => {
         if (permissionStatus.state === "granted") {
+          console.log("test");
           startRecording();
         } else if (permissionStatus.state === "prompt") {
           // Handle prompt state

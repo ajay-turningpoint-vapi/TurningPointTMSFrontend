@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import DashboardCard from "../../components/shared/DashboardCard";
 import ProfileImg from "../../assets/images/profile/user-1.jpg";
@@ -37,14 +37,21 @@ import {
   Alert,
   styled,
   keyframes,
+  Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import SyncAltIcon from "@mui/icons-material/SyncAlt";
-
+import ImageIcon from "@mui/icons-material/Image";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import MicIcon from "@mui/icons-material/Mic";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
 import moment from "moment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useDispatch, useSelector } from "react-redux";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 import {
   deleteTask,
   getTasks,
@@ -71,7 +78,7 @@ const CustomAlert = styled(Alert)(({ theme }) => ({
 }));
 const TypographyPage = () => {
   const dispatch = useDispatch();
-  const { tasks, loading, error } = useSelector((state) => state.tasks);
+  const { tasks, error } = useSelector((state) => state.tasks);
   const { users } = useSelector((state) => state.users);
   const { user } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,7 +102,17 @@ const TypographyPage = () => {
     priority: selectedTask?.priority,
     dueDate: selectedTask?.dueDate,
   });
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
   const [errors, setErrors] = useState({});
+  const [recording, setRecording] = useState(false);
+  const [counter, setCounter] = useState(0);
+  const intervalRef = useRef(null);
+  const [audioURL, setAudioURL] = useState(null);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef(null);
   const validate = () => {
     let tempErrors = {};
     tempErrors.newAssignTo = newAssignTo ? "" : "Assign To is required";
@@ -212,7 +229,7 @@ const TypographyPage = () => {
       allTasks?.filter((task) => task.status === "In Progress").length || 0;
     const open = allTasks?.filter((task) => task.status === "Open").length || 0;
     const closed =
-      allTasks?.filter((task) => task.status === "Close").length || 0;
+      allTasks?.filter((task) => task.status === "Completed").length || 0;
 
     return { total, pending, open, closed };
   };
@@ -247,6 +264,181 @@ const TypographyPage = () => {
     dispatch(deleteTask(id));
   };
 
+  const handleIconClick = (type) => {
+    if (type === "audio") {
+      if (recording) {
+        handleStopRecording();
+      } else {
+        handleStartRecording();
+      }
+    } else {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = type;
+      input.multiple = true;
+      input.onchange = handleStatusAttachmentChange;
+      input.click();
+    }
+  };
+  const renderAttachmentPreview = (attachment, index) => {
+    switch (attachment.type) {
+      case "image":
+        return <ImageIcon />;
+      case "application":
+        if (attachment.name.endsWith(".pdf")) {
+          return <PictureAsPdfIcon />;
+        }
+        break;
+      case "audio":
+        return (
+          <Box display="flex" alignItems="center">
+            <Tooltip>
+              <IconButton>
+                <MicIcon color="primary" />
+              </IconButton>
+            </Tooltip>
+
+            <Typography ml={1}>{attachment.name}</Typography>
+            {audioURL === attachment.path ? (
+              <>
+                <IconButton onClick={() => handlePlayAudio(attachment.path)}>
+                  <PlayCircleOutlineIcon />
+                </IconButton>
+                <IconButton onClick={handlePauseAudio}>
+                  <PauseCircleOutlineIcon />
+                </IconButton>
+                <Box display="flex" alignItems="center" ml={1}>
+                  <progress value={currentTime} max={duration} />
+                  <Typography ml={1}>
+                    {Math.floor(currentTime)} / {Math.floor(duration)} sec
+                  </Typography>
+                </Box>
+              </>
+            ) : null}
+          </Box>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const handleStartRecording = () => {
+    navigator.permissions
+      .query({ name: "microphone" })
+      .then((permissionStatus) => {
+        if (permissionStatus.state === "granted") {
+          startRecording();
+        } else if (permissionStatus.state === "prompt") {
+          // Handle prompt state
+        } else {
+          alert("Microphone permission denied or unavailable");
+          // Handle error gracefully
+        }
+      })
+      .catch((error) => {
+        alert("Error querying microphone permission:", error);
+        // Handle error gracefully
+      });
+  };
+
+  const startRecording = () => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const recorder = new MediaRecorder(stream);
+        let chunks = [];
+        recorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: "audio/wav" });
+          const url = URL.createObjectURL(audioBlob);
+          setAttachments((prevAttachments) => [
+            ...prevAttachments,
+            {
+              type: "audio",
+              path: url,
+              name: "recorded_audio.wav",
+            },
+          ]);
+        };
+
+        // Clear previous interval if exists
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+
+        recorder.start();
+        setMediaRecorder(recorder);
+        setRecording(true);
+
+        // Start counter
+        const timer = setInterval(() => {
+          setCounter((prevCounter) => prevCounter + 1);
+        }, 1000);
+
+        // Save interval reference to clear later
+        intervalRef.current = timer;
+
+        // Stop recording after 30 seconds (or any desired duration)
+        setTimeout(() => {
+          handleStopRecording();
+        }, 30000); // 30 seconds
+      })
+      .catch((error) => {
+        alert("Error accessing microphone:", error);
+        // Handle error gracefully, e.g., show a message to the user
+      });
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setRecording(false);
+      setCounter(0); // Reset counter
+      clearInterval(intervalRef.current); // Clear interval
+      intervalRef.current = null; // Clear interval reference
+    }
+  };
+  const handlePlayAudio = (url) => {
+    if (audioRef.current) {
+      audioRef.current.src = url;
+      audioRef.current.play();
+      audioRef.current.ontimeupdate = () => {
+        setCurrentTime(audioRef.current.currentTime);
+        setDuration(audioRef.current.duration);
+      };
+    }
+  };
+
+  const handlePauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+  const handleStatusAttachmentChange = (e) => {
+    const files = Array.from(e.target.files);
+    setLoading(true);
+    setTimeout(() => {
+      setAttachments((prevAttachments) => [
+        ...prevAttachments,
+        ...files.map((file) => ({
+          type: file.type.split("/")[0],
+          path: URL.createObjectURL(file),
+          name: file.name,
+        })),
+      ]);
+      setLoading(false);
+    }, 1000); // Simulate loading
+  };
+  const handleDeleteAttachment = (index) => {
+    const updatedAttachments = [...attachments];
+    updatedAttachments.splice(index, 1);
+    setAttachments(updatedAttachments);
+  };
+
   return (
     <div style={{ width: "fit-content" }}>
       <DashboardCard title="All Tasks">
@@ -275,7 +467,8 @@ const TypographyPage = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid> <Grid item xs={3}>
+            </Grid>{" "}
+            <Grid item xs={3}>
               <Card
                 onClick={() => handleClickCard("Open")}
                 sx={{
@@ -301,7 +494,7 @@ const TypographyPage = () => {
             </Grid>
             <Grid item xs={3}>
               <Card
-                onClick={() => handleClickCard("In-Progress")}
+                onClick={() => handleClickCard("In Progress")}
                 sx={{
                   cursor: "pointer",
                   transition: "transform 0.2s",
@@ -323,10 +516,9 @@ const TypographyPage = () => {
                 </CardContent>
               </Card>
             </Grid>
-           
             <Grid item xs={3}>
               <Card
-                onClick={() => handleClickCard("Close")}
+                onClick={() => handleClickCard("Completed")}
                 sx={{
                   cursor: "pointer",
                   transition: "transform 0.2s",
@@ -417,13 +609,7 @@ const TypographyPage = () => {
                     Updated Time
                   </Typography>
                 </TableCell>
-                
-                  <TableCell>
-                    <Typography variant="h6" fontWeight={600}>
-                      Transfer Ticket
-                    </Typography>
-                  </TableCell>
-                
+
                 <TableCell>
                   <Typography variant="h6" fontWeight={600}>
                     Actions
@@ -1071,16 +1257,47 @@ const TypographyPage = () => {
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Enter reason for status change"
                 />
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Attachments:
-                  </Typography>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleAttachmentChange}
+                <Box display="flex" alignItems="center" sx={{ mt: 2 }} gap={2}>
+                  <ImageIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick("image/*")}
                   />
+                  <PictureAsPdfIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => handleIconClick("application/pdf")}
+                  />
+                  {recording === false ? (
+                    <Tooltip title="Start Recording">
+                      <MicIcon
+                        sx={{ cursor: "pointer" }}
+                        onClick={() => handleIconClick("audio")}
+                      />
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Stop Recording">
+                      <IconButton onClick={handleStopRecording}>
+                        <StopCircleIcon color="error" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
+
+                <Box>
+                  <Typography ml={1} mt={1}>
+                    {recording && `Recording... ${counter} sec`}
+                  </Typography>
+                </Box>
+                {loading && <CircularProgress sx={{ mt: 2 }} />}
+                {!loading &&
+                  attachments.map((attachment, index) => (
+                    <Box key={index} display="flex" alignItems="center" mt={2}>
+                      {renderAttachmentPreview(attachment, index)}
+                      <IconButton onClick={() => handleDeleteAttachment(index)}>
+                        <DeleteIcon color="error" />
+                      </IconButton>
+                    </Box>
+                  ))}
+
                 <Button
                   onClick={(e) => handleSave(e, selectedTask._id)}
                   variant="contained"

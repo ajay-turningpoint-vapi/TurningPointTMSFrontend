@@ -34,13 +34,13 @@ const ProductPerformance = () => {
 
   useEffect(() => {
     dispatch(getUsers());
-  }, []);
+  }, [dispatch]);
 
   const handleEditClick = async (user) => {
     setEditingUserId(user._id);
     setEditedUser({ ...user });
     try {
-      const response = await getUsers();
+      const response = await getUsers(); // Assuming getUsers fetches all users including potential reporting managers
       setReportingManagers(response.data);
     } catch (error) {
       console.error("Error fetching reporting managers:", error);
@@ -52,11 +52,8 @@ const ProductPerformance = () => {
     setEditedUser({});
   };
 
-  const handleSaveClick = () => {
-    const updatedUsers = users.map((user) =>
-      user._id === editedUser._id ? editedUser : user
-    );
-    // setUsers(updatedUsers);
+  const handleSaveClick = async () => {
+    // await dispatch(updateUser(editedUser._id, editedUser));
     setEditingUserId(null);
   };
 
@@ -119,6 +116,11 @@ const ProductPerformance = () => {
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
                   Email Id
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="subtitle2" fontWeight={600}>
+                  Phone
                 </Typography>
               </TableCell>
               <TableCell>
@@ -190,6 +192,20 @@ const ProductPerformance = () => {
                 </TableCell>
                 <TableCell>
                   {editingUserId === user._id ? (
+                    <TextField
+                      name="phone"
+                      value={editedUser.phone}
+                      onChange={handleInputChange}
+                      size="small"
+                    />
+                  ) : (
+                    <Typography sx={{ fontSize: "15px", fontWeight: "500" }}>
+                      {user.phone}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editingUserId === user._id ? (
                     <Select
                       name="department"
                       value={editedUser.department}
@@ -238,21 +254,21 @@ const ProductPerformance = () => {
                 <TableCell>
                   {editingUserId === user._id ? (
                     <Select
-                      name="reportingManager"
-                      value={editedUser.reportingManager}
+                      name="reportingTo"
+                      value={editedUser.reportingTo}
                       onChange={handleInputChange}
                       size="small"
                       sx={{ minWidth: 120 }}
                     >
-                      {reportingManagers.map((manager) => (
-                        <MenuItem key={manager._id} value={manager.userName}>
-                          {manager.userName}
+                     
+                        <MenuItem >
+                         self
                         </MenuItem>
-                      ))}
+                    
                     </Select>
                   ) : (
                     <Typography sx={{ fontSize: "15px", fontWeight: "500" }}>
-                      {user.reportingManager}
+                      {user.reportingTo}
                     </Typography>
                   )}
                 </TableCell>

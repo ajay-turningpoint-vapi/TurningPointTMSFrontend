@@ -56,7 +56,8 @@ export const addTask = (formData) => async (dispatch) => {
       type: ADD_TASK,
       payload: res.data,
     });
-    await showLottiePopup("New Task Created");
+   
+   if (res) await showLottiePopup("New Task Created");
   } catch (err) {
     console.log(err);
     dispatch({

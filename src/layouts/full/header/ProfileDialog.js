@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogActions,
@@ -11,13 +11,55 @@ import {
   Card,
   CardContent,
   Grid,
+  TextField,
+  MenuItem,
+  ListItemIcon,
+  Select,
 } from "@mui/material";
 import ProfileImg from "../../../assets/images/profile/user-1.jpg";
 
 import { useSelector } from "react-redux";
-const ProfileDialog = ({ open, onClose, profile }) => {
+import axios from "axios";
+import { updateUserProfile } from "../../../actions/userActions";
+import { IconUser } from "@tabler/icons-react";
+import showLottiePopup from "../../../views/utilities/LottiePopup";
+const ProfileDialog = ({ open, onClose, profile, onUpdate }) => {
+  const [editMode, setEditMode] = useState(false);
+  const [editProfile, setEditProfile] = useState(profile);
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    setEditProfile(profile);
+  }, [profile]);
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditProfile((prevProfile) => ({ ...prevProfile, [name]: value }));
+  };
+
+  const handleDepartmentChange = (e) => {
+    setEditProfile((prevProfile) => ({
+      ...prevProfile,
+      department: e.target.value,
+    }));
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleSave = () => {
+    onUpdate({ ...editProfile, password });
+    setEditMode(false);
+  };
+
+  const handleClose = () => {
+    setEditMode(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={handleClose} fullWidth>
       <DialogTitle>User Profile</DialogTitle>
       <DialogContent>
         <Card>
@@ -36,7 +78,16 @@ const ProfileDialog = ({ open, onClose, profile }) => {
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body1">{profile.name}</Typography>
+                {editMode ? (
+                  <TextField
+                    fullWidth
+                    name="userName"
+                    value={editProfile.userName}
+                    onChange={handleEditChange}
+                  />
+                ) : (
+                  <Typography variant="body1">{profile.userName}</Typography>
+                )}
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="h6" gutterBottom>
@@ -44,7 +95,33 @@ const ProfileDialog = ({ open, onClose, profile }) => {
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body1">{profile.email}</Typography>
+                {editMode ? (
+                  <TextField
+                    fullWidth
+                    name="emailID"
+                    value={editProfile.emailID}
+                    onChange={handleEditChange}
+                  />
+                ) : (
+                  <Typography variant="body1">{profile.emailID}</Typography>
+                )}
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="h6" gutterBottom>
+                  Phone
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                {editMode ? (
+                  <TextField
+                    fullWidth
+                    name="phone"
+                    value={editProfile.phone}
+                    onChange={handleEditChange}
+                  />
+                ) : (
+                  <Typography variant="body1">{profile.phone}</Typography>
+                )}
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="h6" gutterBottom>
@@ -52,9 +129,7 @@ const ProfileDialog = ({ open, onClose, profile }) => {
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body1">
-                  {profile.role }
-                </Typography>
+                <Typography variant="body1">{profile.role}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="h6" gutterBottom>
@@ -62,27 +137,76 @@ const ProfileDialog = ({ open, onClose, profile }) => {
                 </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body1">{profile.department}</Typography>
+                {editMode ? (
+                  <Select
+                    fullWidth
+                    name="department"
+                    value={editProfile.department}
+                    onChange={handleDepartmentChange}
+                  >
+                    <MenuItem value="Sales">Sales</MenuItem>
+                    <MenuItem value="Finance">Finance</MenuItem>
+                    <MenuItem value="HR">HR</MenuItem>
+                    <MenuItem value="Admin">Admin</MenuItem>
+                    <MenuItem value="IT">IT</MenuItem>
+                  </Select>
+                ) : (
+                  <Typography variant="body1">{profile.department}</Typography>
+                )}
               </Grid>
+              {editMode && (
+                <>
+                  <Grid item xs={6}>
+                    <Typography variant="h6" gutterBottom>
+                      Change Password
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      type="password"
+                      value={password}
+                      onChange={handlePasswordChange}
+                      placeholder="Enter new password"
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </CardContent>
         </Card>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary">
-          Close
-        </Button>
+        {editMode ? (
+          <>
+            <Button onClick={handleSave} color="primary">
+              Save
+            </Button>
+            <Button onClick={() => setEditMode(false)} color="secondary">
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={() => setEditMode(true)} color="primary">
+              Edit
+            </Button>
+            <Button onClick={handleClose} color="secondary">
+              Close
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   );
 };
 
-// Usage example
 const ProfilePage = () => {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [profile, setProfile] = React.useState({
-    name: "",
-    email: "",
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [profile, setProfile] = useState({
+    userName: "",
+    emailID: "",
+    phone: "",
     role: "",
     department: "",
   });
@@ -90,12 +214,14 @@ const ProfilePage = () => {
 
   useEffect(() => {
     setProfile({
-      name: user?.userName,
-      email: user?.emailID,
+      userName: user?.userName,
+      emailID: user?.emailID,
+      phone: user?.phone,
       role: user?.role,
       department: user?.department,
     });
-  }, []);
+  }, [user]);
+
   const handleDialogOpen = () => {
     setDialogOpen(true);
   };
@@ -104,13 +230,33 @@ const ProfilePage = () => {
     setDialogOpen(false);
   };
 
+  const handleUpdateProfile = async (updatedProfile) => {
+    try {
+      const response = await updateUserProfile(updatedProfile);
+      if (response.data) {
+        await showLottiePopup("Profile Updated");
+      }
+    } catch (error) {
+      console.error("An error occurred while updating the profile:", error);
+    }
+  };
+
   return (
     <div>
-      <span onClick={handleDialogOpen}>View Profile</span>
+      <span
+        onClick={handleDialogOpen}
+        style={{ display: "flex", alignItems: "center" }}
+      >
+        <ListItemIcon>
+          <IconUser width={20} />
+        </ListItemIcon>
+        View Profile
+      </span>
       <ProfileDialog
         open={dialogOpen}
         onClose={handleDialogClose}
         profile={profile}
+        onUpdate={handleUpdateProfile}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import Loadable from "../layouts/full/shared/loadable/Loadable";
 import PrivateRoute from "./PrivateRoute";
 import NewUser from "../views/dashboard/components/NewUser";
-import VoiceRecorder from "../views/icons/VoiceRecorder";
+
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import("../layouts/full/FullLayout")));
 const BlankLayout = Loadable(
@@ -79,11 +79,7 @@ const Router = [
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
         children: [{ path: "/create-user", exact: true, element: <NewUser /> }],
       },
-      {
-        path: "/voice",
-        element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
-        children: [{ path: "/voice", exact: true, element: <VoiceRecorder /> }],
-      },
+    
       {
         path: "/add-task",
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
