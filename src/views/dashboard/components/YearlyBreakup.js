@@ -13,7 +13,7 @@ import {
   Modal,
 } from "@mui/material";
 import { IconArrowUpLeft } from "@tabler/icons-react";
-
+import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import { getAllUsersPerformance } from "../../../actions/dashboardActions";
 
@@ -147,7 +147,6 @@ const YearlyBreakup = () => {
             }}
           >
             <Grid container spacing={3}>
-              {/* First row */}
               <Grid item xs={6} style={{ ...gridItemStyle1 }}>
                 <Typography variant="h3" fontWeight="700">
                   {stats.totalTasks}
@@ -235,7 +234,9 @@ const YearlyBreakup = () => {
             <Card>
               <CardContent>
                 {isAllZero(donutChartData) ? (
-                  <Typography align="center">No tasks data available</Typography>
+                  <Typography align="center">
+                    No tasks data available
+                  </Typography>
                 ) : (
                   <ReactApexChart
                     type="donut"
@@ -392,6 +393,8 @@ const YearlyBreakup = () => {
                             selectedLeader === index ? null : index
                           )
                         }
+                        // size="small"
+                        // endIcon={<ArrowCircleRightIcon />}
                         style={{
                           marginTop: "20px",
                           display: "block",

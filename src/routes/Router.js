@@ -3,6 +3,8 @@ import { Navigate } from "react-router-dom";
 import Loadable from "../layouts/full/shared/loadable/Loadable";
 import PrivateRoute from "./PrivateRoute";
 import NewUser from "../views/dashboard/components/NewUser";
+import UsersDashboard from "../views/dashboard/components/UsersDashboard";
+import OverDueTasks from "../views/dashboard/components/OverDueTasks";
 
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import("../layouts/full/FullLayout")));
@@ -46,24 +48,26 @@ const Router = [
         children: [{ path: "/dashboard", exact: true, element: <Dashboard /> }],
       },
       {
-        path: "/admin-dashboard",
-        element: <PrivateRoute allowedRoles={["Admin"]} />,
+        path: "/teamleader-dashboard",
+        element: <PrivateRoute allowedRoles={["TeamLeader"]} />,
         children: [
           {
-            path: "/admin-dashboard",
+            path: "/teamleader-dashboard",
             exact: true,
-            element: <AdminDashboard />,
+            element: <TeamLeaderDashboard />,
           },
         ],
       },
       {
-        path: "/teamLeader-dashboard",
-        element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
+        path: "/user-dashboard",
+        element: (
+          <PrivateRoute allowedRoles={["User", "TeamLeader", "Admin"]} />
+        ),
         children: [
           {
-            path: "/teamLeader-dashboard",
+            path: "/user-dashboard",
             exact: true,
-            element: <TeamLeaderDashboard />,
+            element: <UsersDashboard />,
           },
         ],
       },
@@ -79,12 +83,22 @@ const Router = [
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
         children: [{ path: "/create-user", exact: true, element: <NewUser /> }],
       },
-    
+
       {
         path: "/add-task",
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
         children: [{ path: "/add-task", exact: true, element: <Icons /> }],
       },
+      {
+        path: "/overdue-tasks",
+        element: (
+          <PrivateRoute allowedRoles={["TeamLeader", "Admin", "User"]} />
+        ),
+        children: [
+          { path: "/overdue-tasks", exact: true, element: <OverDueTasks /> },
+        ],
+      },
+
       {
         path: "/all-tasks",
         element: (

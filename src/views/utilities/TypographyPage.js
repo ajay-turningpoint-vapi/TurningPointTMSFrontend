@@ -101,6 +101,9 @@ const TypographyPage = () => {
     assignTo: selectedTask?.assignTo,
     priority: selectedTask?.priority,
     dueDate: selectedTask?.dueDate,
+    category: selectedTask?.category,
+    status: selectedTask?.status,
+    assignTo: selectedTask?.assignTo,
   });
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -178,6 +181,7 @@ const TypographyPage = () => {
 
   const handleSave = (e, taskId) => {
     e.preventDefault();
+
     dispatch(
       updateTaskStatus(
         taskId,
@@ -187,7 +191,7 @@ const TypographyPage = () => {
         user?.emailID
       )
     );
-    showLottiePopup("Task Updated");
+
     setShowReason(false);
     setReason("");
     setNewStatus("");
@@ -238,6 +242,7 @@ const TypographyPage = () => {
 
   const handleViewClick = (task) => {
     setSelectedTask(task);
+    setEditedTask(task);
     setOpenDialog(true);
   };
 
@@ -256,7 +261,7 @@ const TypographyPage = () => {
   };
 
   const handleEditSave = () => {
-    console.log(editedTask);
+    dispatch(updateTask(editedTask._id, editedTask));
     setEditMode(false);
   };
 
@@ -648,19 +653,17 @@ const TypographyPage = () => {
                         </Box>
                       </Box>
                     </TableCell>
-                    {role === 0 ? null : (
-                      <>
-                        <TableCell>
-                          <Typography
-                            color="textSecondary"
-                            variant="subtitle2"
-                            fontWeight={400}
-                          >
-                            {taskDetail.assignTo}
-                          </Typography>
-                        </TableCell>
-                      </>
-                    )}
+
+                    <TableCell>
+                      <Typography
+                        color="textSecondary"
+                        variant="subtitle2"
+                        fontWeight={400}
+                      >
+                        {taskDetail.assignTo}
+                      </Typography>
+                    </TableCell>
+
                     <TableCell>
                       <Chip
                         sx={{
@@ -702,36 +705,6 @@ const TypographyPage = () => {
                       </Typography>
                     </TableCell>
 
-                    {role === 0 && (
-                      <TableCell>
-                        <Select
-                          sx={{
-                            boxShadow: "none",
-                            "& .MuiSelect-select": {
-                              paddingRight: 1,
-                              paddingLeft: 1,
-                              paddingTop: 1,
-                              paddingBottom: 1,
-                            },
-                          }}
-                          value={taskDetail.assignToUsers}
-                          onChange={(e) => {}}
-                          renderValue={(selected) => (
-                            <Chip
-                              label={taskDetail.assignToUsers}
-                              color="primary"
-                              size="small"
-                            />
-                          )}
-                        >
-                          {taskDetail.assignToUsers.map((user) => (
-                            <MenuItem key={user} value={user}>
-                              {user}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </TableCell>
-                    )}
                     <TableCell>
                       <IconButton
                         aria-label="view"
@@ -743,14 +716,15 @@ const TypographyPage = () => {
                       <IconButton onClick={handleSmallOpen}>
                         <SyncAltIcon />
                       </IconButton>
-                      <IconButton
-                        aria-label="delete"
-                        color="error"
-                        onClick={() => handleDeleteClick(taskDetail._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-
+                      {user.role !== "User" && (
+                        <IconButton
+                          aria-label="delete"
+                          color="error"
+                          onClick={() => handleDeleteClick(taskDetail._id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
                       <Dialog open={openSmallDialog} onClose={handleSmallClose}>
                         <DialogTitle>Want To Transfer Task ?</DialogTitle>
                         <DialogContent>
@@ -817,10 +791,49 @@ const TypographyPage = () => {
           maxWidth="md"
           fullWidth
         >
-          <DialogTitle>Task Details</DialogTitle>
+          <DialogTitle>About Task</DialogTitle>
           <DialogContent>
             <Card sx={{ mt: 2 }} variant="outlined">
               <CardContent>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={2}
+                >
+                  <u>
+                    <Typography variant="h6">Task Details :</Typography>
+                  </u>
+                  {editMode ? (
+                    <Box>
+                      <Button
+                        onClick={() => setEditMode(false)}
+                        variant="outlined"
+                        color="error"
+                        sx={{ mr: 1 }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleEditSave}
+                        variant="outlined"
+                        color="secondary"
+                      >
+                        Save
+                      </Button>
+                    </Box>
+                  ) : (
+                    user.role !== "User" && (
+                      <IconButton
+                        onClick={() => setEditMode(true)}
+                        color="primary"
+                        style={{ border: "1px solid #5D87FF" }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    )
+                  )}
+                </Box>
                 <Grid container spacing={2}>
                   <Grid item xs={4}>
                     <Typography
@@ -882,10 +895,27 @@ const TypographyPage = () => {
                     </Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography variant="body1" gutterBottom>
-                      {selectedTask.category}
-                    </Typography>
+                    {editMode ? (
+                      <TextField
+                        select
+                        fullWidth
+                        name="category"
+                        value={editedTask.category}
+                        onChange={handleInputChange}
+                      >
+                        <MenuItem value="Sales">Sales</MenuItem>
+                        <MenuItem value="Finance">Finance</MenuItem>
+                        <MenuItem value="Admin">Admin</MenuItem>
+                        <MenuItem value="IT">IT</MenuItem>
+                        <MenuItem value="HR">HR</MenuItem>
+                      </TextField>
+                    ) : (
+                      <Typography variant="body1" gutterBottom>
+                        {selectedTask.category}
+                      </Typography>
+                    )}
                   </Grid>
+
                   <Grid item xs={4}>
                     <Typography
                       variant="subtitle1"
@@ -913,11 +943,18 @@ const TypographyPage = () => {
                   <Grid item xs={8}>
                     {editMode ? (
                       <TextField
+                        select
                         fullWidth
                         name="assignTo"
                         value={editedTask.assignTo}
                         onChange={handleInputChange}
-                      />
+                      >
+                        {users.map((option) => (
+                          <MenuItem key={option._id} value={option.emailID}>
+                            {option.emailID}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     ) : (
                       <Typography variant="body1" gutterBottom>
                         {selectedTask.assignTo}
@@ -973,11 +1010,25 @@ const TypographyPage = () => {
                     </Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Chip
-                      label={selectedTask.status}
-                      color={getStatusColor(selectedTask.status)}
-                      size="small"
-                    />
+                    {editMode ? (
+                      <TextField
+                        select
+                        fullWidth
+                        name="status"
+                        value={editedTask.status}
+                        onChange={handleInputChange}
+                      >
+                        <MenuItem value="Open">Open</MenuItem>
+                        <MenuItem value="In Progress">In Progress</MenuItem>
+                        <MenuItem value="Completed">Completed</MenuItem>
+                      </TextField>
+                    ) : (
+                      <Chip
+                        label={selectedTask.status}
+                        color={getStatusColor(selectedTask.status)}
+                        size="small"
+                      />
+                    )}
                   </Grid>
 
                   <Grid item xs={4}>
@@ -1089,7 +1140,11 @@ const TypographyPage = () => {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {attachment.path}
+                              <img
+                                src={attachment.path}
+                                alt="Attachment"
+                                style={{ maxWidth: "200px", height: "200px" }}
+                              />
                             </a>
                           </Typography>
                         </Box>
@@ -1311,32 +1366,6 @@ const TypographyPage = () => {
             )}
           </DialogContent>
           <DialogActions>
-            {editMode ? (
-              <>
-                <Button
-                  onClick={() => setEditMode(false)}
-                  variant="outlined"
-                  color="error"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleEditSave}
-                  variant="outlined"
-                  color="secondary"
-                >
-                  Save
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => setEditMode(true)}
-                variant="contained"
-                color="success"
-              >
-                Edit
-              </Button>
-            )}
             <Button onClick={handleDialogClose} variant="contained">
               Close
             </Button>

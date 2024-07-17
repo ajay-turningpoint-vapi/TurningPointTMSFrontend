@@ -10,26 +10,33 @@ import ProductPerformance from "./components/ProductPerformance";
 import Blog from "./components/Blog";
 import MonthlyEarnings from "./components/MonthlyEarnings";
 import UsersPerformance from "./components/UsersPerformance";
+import OverDueTasks from "./components/OverDueTasks";
+import { useSelector } from "react-redux";
 
 const Dashboard = () => {
+  const { user } = useSelector((state) => state.auth);
   return (
     <PageContainer title="Dashboard" description="this is Dashboard">
       <Box>
         <Grid conatiner spacing={3}>
-          <Grid item xs={12} lg={8}>
-            <SalesOverview />
-          </Grid>
+          {user.role === "Admin" && (
+            <Grid item xs={12} lg={8}>
+              <SalesOverview />
+            </Grid>
+          )}
           <Grid item xs={12} lg={4}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <YearlyBreakup />
-              </Grid>
-              <Grid item xs={12} lg={12}>
-                <UsersPerformance />
-              </Grid>
-              <Grid item xs={12} lg={12}>
-                <ProductPerformance />
-              </Grid>
+              {user.role === "Admin" && (
+                <Grid item xs={12}>
+                  <YearlyBreakup />
+                </Grid>
+              )}
+              {user.role === "Admin" && (
+                <Grid item xs={12} lg={12}>
+                  <UsersPerformance />
+                </Grid>
+              )}
+             
             </Grid>
           </Grid>
         </Grid>

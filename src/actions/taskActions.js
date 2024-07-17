@@ -14,21 +14,26 @@ import { ip } from "../utils/ipconfig";
 import showLottiePopup from "../views/utilities/LottiePopup";
 
 // Get tasks
-export const getTasks = () => async (dispatch) => {
-  try {
-    const res = await axios.get(`${ip}/api/tasks`);
-    console.log(res);
-    dispatch({
-      type: GET_TASKS,
-      payload: res.data,
-    });
-  } catch (err) {
-    dispatch({
-      type: TASK_ERROR,
-      payload: { message: err.response?.data.message },
-    });
-  }
-};
+export const getTasks =
+  (isDelay = false) =>
+  async (dispatch) => {
+    try {
+      // Construct the URL based on whether isDelay is true or false
+      const url = isDelay ? `${ip}/api/tasks?isDelay=true` : `${ip}/api/tasks`;
+
+      const res = await axios.get(url);
+
+      dispatch({
+        type: GET_TASKS,
+        payload: res.data,
+      });
+    } catch (err) {
+      dispatch({
+        type: TASK_ERROR,
+        payload: { message: err.response?.data.message },
+      });
+    }
+  };
 
 // Get task by ID
 export const getTask = (id) => async (dispatch) => {
@@ -56,8 +61,8 @@ export const addTask = (formData) => async (dispatch) => {
       type: ADD_TASK,
       payload: res.data,
     });
-   
-   if (res) await showLottiePopup("New Task Created");
+
+    if (res) await showLottiePopup("New Task Created");
   } catch (err) {
     console.log(err);
     dispatch({
@@ -69,10 +74,11 @@ export const addTask = (formData) => async (dispatch) => {
 
 // Update task
 export const updateTask = (id, formData) => async (dispatch) => {
-  console.log(id, formData);
   try {
     const res = await axios.patch(`${ip}/api/tasks/${id}`, formData);
-
+    if (res.data) {
+      showLottiePopup("Task Updated");
+    }
     dispatch({
       type: UPDATE_TASK,
       payload: res.data,
@@ -115,9 +121,11 @@ export const updateTaskStatus = (
         newStatus,
         reason,
         changesAttachments,
-       
       });
-      showLottiePopup("Task Updated");
+      if (response.data) {
+        showLottiePopup("Task Updated");
+      }
+
       dispatch(updateTaskStatusSuccess(response.data.task));
     } catch (error) {
       dispatch(updateTaskStatusFailure(error.message));

@@ -23,7 +23,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsers } from "../../../actions/userActions";
+import { getUsers, updateUser } from "../../../actions/userActions";
 const ProductPerformance = () => {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
@@ -39,12 +39,6 @@ const ProductPerformance = () => {
   const handleEditClick = async (user) => {
     setEditingUserId(user._id);
     setEditedUser({ ...user });
-    try {
-      const response = await getUsers(); // Assuming getUsers fetches all users including potential reporting managers
-      setReportingManagers(response.data);
-    } catch (error) {
-      console.error("Error fetching reporting managers:", error);
-    }
   };
 
   const handleCancelClick = () => {
@@ -53,7 +47,8 @@ const ProductPerformance = () => {
   };
 
   const handleSaveClick = async () => {
-    // await dispatch(updateUser(editedUser._id, editedUser));
+   
+    await dispatch(updateUser(editedUser._id, editedUser));
     setEditingUserId(null);
   };
 
@@ -133,11 +128,7 @@ const ProductPerformance = () => {
                   Role
                 </Typography>
               </TableCell>
-              <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Reporting Manager
-                </Typography>
-              </TableCell>
+              
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
                   Created At
@@ -251,27 +242,7 @@ const ProductPerformance = () => {
                     />
                   )}
                 </TableCell>
-                <TableCell>
-                  {editingUserId === user._id ? (
-                    <Select
-                      name="reportingTo"
-                      value={editedUser.reportingTo}
-                      onChange={handleInputChange}
-                      size="small"
-                      sx={{ minWidth: 120 }}
-                    >
-                     
-                        <MenuItem >
-                         self
-                        </MenuItem>
-                    
-                    </Select>
-                  ) : (
-                    <Typography sx={{ fontSize: "15px", fontWeight: "500" }}>
-                      {user.reportingTo}
-                    </Typography>
-                  )}
-                </TableCell>
+                
                 <TableCell>
                   <Typography sx={{ fontSize: "15px", fontWeight: "500" }}>
                     {moment(user.createdStamp).fromNow()}

@@ -108,7 +108,7 @@ const SalesOverview = () => {
   ];
 
   return (
-    <DashboardCard title="Tasks Overview">
+    <DashboardCard title="Tasks Category Overview">
       <Chart
         options={optionsColumnChart}
         series={seriesColumnChart}

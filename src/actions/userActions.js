@@ -86,7 +86,9 @@ export const addUser = (formData) => async (dispatch) => {
 export const updateUser = (id, formData) => async (dispatch) => {
   try {
     const res = await axios.put(`${ip}/api/users/${id}`, formData);
-
+    if (res.data) {
+      showLottiePopup("User Updated!!");
+    }
     dispatch({
       type: UPDATE_USER,
       payload: res.data,
@@ -118,5 +120,5 @@ export const deleteUser = (id) => async (dispatch) => {
 
 export const updateUserProfile = async (formData) => {
   const res = await axios.put(`${ip}/api/users/profile`, formData);
-  return res
+  return res;
 };

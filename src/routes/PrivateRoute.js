@@ -12,7 +12,9 @@ const PrivateRoute = ({ allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/auth/404" />;
   }
-
+  if (user.role === "TeamLeader") {
+    return <Navigate to="/teamleader-dashboard" />;
+  }
   return <Outlet />;
 };
 

@@ -4,8 +4,11 @@ import {
   IconLayoutDashboard,
   IconLogin,
   IconMoodHappy,
+  IconSquareRoundedPlus,
   IconTypography,
   IconUserPlus,
+  IconClockX,
+  IconList,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -29,13 +32,19 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "Tasks",
-    icon: IconTypography,
+    icon: IconList,
     href: "/all-tasks",
   },
   {
     id: uniqueId(),
+    title: "Overdue Tasks",
+    icon: IconClockX,
+    href: "/overdue-tasks",
+  },
+  {
+    id: uniqueId(),
     title: "Add Task",
-    icon: IconCopy,
+    icon: IconSquareRoundedPlus,
     href: "/add-task",
   },
   {
@@ -46,13 +55,13 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "All Users",
-    icon: IconAperture,
+    icon: IconList,
     href: "/all-users",
   },
   {
     id: uniqueId(),
     title: "Create User",
-    icon: IconAperture,
+    icon: IconSquareRoundedPlus,
     href: "/create-user",
   },
 ];
@@ -84,7 +93,6 @@ export const MenuitemsForUsers = [
     icon: IconCopy,
     href: "/add-tickets",
   },
-    
 ];
 export const old = [
   {
