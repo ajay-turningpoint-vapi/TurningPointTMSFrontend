@@ -79,19 +79,19 @@ export const MenuitemsForUsers = [
   },
   {
     navlabel: true,
-    subheader: "All Tickets",
+    subheader: "All Tasks",
   },
   {
     id: uniqueId(),
-    title: "Tickets",
-    icon: IconTypography,
-    href: "/all-tickets",
+    title: "Tasks",
+    icon: IconList,
+    href: "/all-tasks",
   },
   {
     id: uniqueId(),
-    title: "Add Ticket",
-    icon: IconCopy,
-    href: "/add-tickets",
+    title: "Overdue Tasks",
+    icon: IconClockX,
+    href: "/overdue-tasks",
   },
 ];
 export const old = [

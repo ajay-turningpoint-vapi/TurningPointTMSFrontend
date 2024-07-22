@@ -12,6 +12,8 @@ import MonthlyEarnings from "./components/MonthlyEarnings";
 import UsersPerformance from "./components/UsersPerformance";
 import OverDueTasks from "./components/OverDueTasks";
 import { useSelector } from "react-redux";
+import SingleUserStats from "./components/SingleUserStats";
+import TeamLeaderDashboard from "./TeamLeaderDashboard";
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -19,6 +21,8 @@ const Dashboard = () => {
     <PageContainer title="Dashboard" description="this is Dashboard">
       <Box>
         <Grid conatiner spacing={3}>
+          {user.role === "User" && <SingleUserStats />}
+          {user.role === "TeamLeader" && <TeamLeaderDashboard />}
           {user.role === "Admin" && (
             <Grid item xs={12} lg={8}>
               <SalesOverview />
@@ -36,7 +40,6 @@ const Dashboard = () => {
                   <UsersPerformance />
                 </Grid>
               )}
-             
             </Grid>
           </Grid>
         </Grid>

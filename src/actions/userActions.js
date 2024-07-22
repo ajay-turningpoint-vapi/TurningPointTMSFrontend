@@ -48,6 +48,14 @@ export const createUsers = (formData) => async (dispatch) => {
   }
 };
 
+export const userStatus = async () => {
+  return await axios.get(`${ip}/api/dashboard/user`);
+};
+
+export const teamLeaderStatus = async () => {
+  return await axios.get(`${ip}/api/dashboard/teamleader`);
+};
+
 // Get user by ID
 export const getUser = (id) => async (dispatch) => {
   try {

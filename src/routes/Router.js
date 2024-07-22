@@ -47,30 +47,7 @@ const Router = [
         ),
         children: [{ path: "/dashboard", exact: true, element: <Dashboard /> }],
       },
-      {
-        path: "/teamleader-dashboard",
-        element: <PrivateRoute allowedRoles={["TeamLeader"]} />,
-        children: [
-          {
-            path: "/teamleader-dashboard",
-            exact: true,
-            element: <TeamLeaderDashboard />,
-          },
-        ],
-      },
-      {
-        path: "/user-dashboard",
-        element: (
-          <PrivateRoute allowedRoles={["User", "TeamLeader", "Admin"]} />
-        ),
-        children: [
-          {
-            path: "/user-dashboard",
-            exact: true,
-            element: <UsersDashboard />,
-          },
-        ],
-      },
+      
       {
         path: "/all-users",
         element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,

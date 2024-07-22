@@ -37,11 +37,13 @@ export default function (state = initialState, action) {
         loading: false,
         authError: payload,
       };
-      case CLEAR_ERRORS:
-        return {
-          ...state,
-          authError: null,
-        };
+    case CLEAR_ERRORS:
+      return {
+        ...state,
+        isAuthenticated: null,
+        user: null,
+        authError: null,
+      };
     default:
       return state;
   }
