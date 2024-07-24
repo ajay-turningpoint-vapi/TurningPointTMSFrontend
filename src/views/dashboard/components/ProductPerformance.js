@@ -23,7 +23,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsers, updateUser } from "../../../actions/userActions";
+import { deleteUser, getUsers, updateUser } from "../../../actions/userActions";
 const ProductPerformance = () => {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
@@ -47,17 +47,18 @@ const ProductPerformance = () => {
   };
 
   const handleSaveClick = async () => {
-   
     await dispatch(updateUser(editedUser._id, editedUser));
     setEditingUserId(null);
   };
 
-  const handleDeleteClick = (userId) => {
-    // Handle delete logic here, e.g., make an API call to delete the user
-    const updatedUsers = users.filter((user) => user._id !== userId);
-    // setUsers(updatedUsers);
+  const handleDeleteClick = async (userId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+    if (confirmed) {
+      await dispatch(deleteUser(userId));
+    }
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedUser((prevState) => ({
@@ -128,7 +129,7 @@ const ProductPerformance = () => {
                   Role
                 </Typography>
               </TableCell>
-              
+
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
                   Created At
@@ -242,7 +243,7 @@ const ProductPerformance = () => {
                     />
                   )}
                 </TableCell>
-                
+
                 <TableCell>
                   <Typography sx={{ fontSize: "15px", fontWeight: "500" }}>
                     {moment(user.createdStamp).fromNow()}

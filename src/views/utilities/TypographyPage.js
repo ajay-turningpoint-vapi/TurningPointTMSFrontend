@@ -103,7 +103,7 @@ const TypographyPage = () => {
     dueDate: selectedTask?.dueDate,
     category: selectedTask?.category,
     status: selectedTask?.status,
-    assignTo: selectedTask?.assignTo,
+    
   });
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);

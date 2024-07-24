@@ -7,14 +7,10 @@ import {
   Stack,
   Typography,
   Avatar,
-  Card,
-  CardContent,
-  Button,
-  Box,
-  Modal,
+
 } from "@mui/material";
 import { IconArrowUpLeft } from "@tabler/icons-react";
-import { useDispatch, useSelector } from "react-redux";
+import {useSelector } from "react-redux";
 import { teamLeaderStatus } from "../../actions/userActions";
 import DashboardCard from "../../components/shared/DashboardCard";
 const TeamLeaderDashboard = () => {
@@ -38,7 +34,7 @@ const TeamLeaderDashboard = () => {
         console.error("Error fetching stats:", error);
       }
     };
-  
+
     fetchStats();
   }, []);
 
@@ -109,96 +105,99 @@ const TeamLeaderDashboard = () => {
 
   return (
     <>
-      
-      <Grid style={{marginBottom:"10px"}}
-      >
-      <DashboardCard title={`${user.userName} Tasks Overview`}>
-        <Grid container spacing={3}>
-          <Grid
-            item
-            xs={12}
-            sm={12}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Grid container spacing={3}>
-              <Grid item xs={6} style={{ ...gridItemStyle1 }}>
-                <Typography variant="h3" fontWeight="700">
-                  {stats.totalTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="primary"
-                  >
-                    All Tasks
+      <Grid style={{ marginBottom: "10px" }}>
+        <DashboardCard title={`${user.userName} Tasks Overview`}>
+          <Grid container spacing={3}>
+            <Grid
+              item
+              xs={12}
+              sm={12}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Grid container spacing={3}>
+                <Grid item xs={6} style={{ ...gridItemStyle1 }}>
+                  <Typography variant="h3" fontWeight="700">
+                    {stats.totalTasks}
                   </Typography>
-                </Stack>
-              </Grid>
-              <Grid item xs={6} style={{ ...gridItemStyle2 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                  {stats.openTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: successColor, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="#FFFFFF"
-                  >
-                    All Open Tasks
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="primary"
+                    >
+                      All Tasks
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid item xs={6} style={{ ...gridItemStyle2 }}>
+                  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                    {stats.openTasks}
                   </Typography>
-                </Stack>
-              </Grid>
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar
+                      sx={{ bgcolor: successColor, width: 27, height: 27 }}
+                    >
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="#FFFFFF"
+                    >
+                      All Open Tasks
+                    </Typography>
+                  </Stack>
+                </Grid>
 
-              {/* Second row */}
-              <Grid item xs={6} style={{ ...gridItemStyle3 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                  {stats.inProgressTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: warningColor, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="#FFFFFF"
-                  >
-                    All In-Progress Tasks
+                {/* Second row */}
+                <Grid item xs={6} style={{ ...gridItemStyle3 }}>
+                  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                    {stats.inProgressTasks}
                   </Typography>
-                </Stack>
-              </Grid>
-              <Grid item xs={6} style={{ ...gridItemStyle4 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                  {stats.completedTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: infoColor, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="#FFFFFF"
-                  >
-                    All Completed Tasks
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar
+                      sx={{ bgcolor: warningColor, width: 27, height: 27 }}
+                    >
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="#FFFFFF"
+                    >
+                      All In-Progress Tasks
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid item xs={6} style={{ ...gridItemStyle4 }}>
+                  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                    {stats.completedTasks}
                   </Typography>
-                </Stack>
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar sx={{ bgcolor: infoColor, width: 27, height: 27 }}>
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="#FFFFFF"
+                    >
+                      All Completed Tasks
+                    </Typography>
+                  </Stack>
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
-        </Grid>
-      </DashboardCard></Grid>
+        </DashboardCard>
+      </Grid>
       <DashboardCard title="Task Progress" style={{ marginTop: "10px" }}>
         <Grid container spacing={3} justifyContent="flex-start">
           <Grid item xs={12} sm={6} md={3} style={gridItemStyleBase}>
@@ -237,81 +236,125 @@ const TeamLeaderDashboard = () => {
         </Grid>
       </DashboardCard>
       <Grid style={{ marginTop: "15px" }}>
-  {memberStats.map((data) => (
-    <DashboardCard key={data.userName} title={`Member Name: ${data.userName}`}>
-      <Grid container spacing={3}>
-        <Grid
-          item
-          xs={12}
-          sm={12}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Grid container spacing={3}>
-            <Grid item xs={6} style={{ ...gridItemStyle1 }}>
-              <Typography variant="h3" fontWeight="700">
-                {data.stats.totalTasks}
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="primary">
-                  All Tasks
-                </Typography>
-              </Stack>
-            </Grid>
-            <Grid item xs={6} style={{ ...gridItemStyle2 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                {data.stats.openTasks}
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: successColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All Open Tasks
-                </Typography>
-              </Stack>
-            </Grid>
+        {memberStats.map((data) => (
+          <DashboardCard
+            key={data.userName}
+            title={`Member Name: ${data.userName}`}
+          >
+            <Grid container spacing={3}>
+              <Grid
+                item
+                xs={12}
+                sm={12}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Grid container spacing={3}>
+                  <Grid item xs={6} style={{ ...gridItemStyle1 }}>
+                    <Typography variant="h3" fontWeight="700">
+                      {data.stats.totalTasks}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      mt={1}
+                      alignItems="center"
+                    >
+                      <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
+                        <IconArrowUpLeft width={20} color="#FFFFFF" />
+                      </Avatar>
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight="600"
+                        color="primary"
+                      >
+                        All Tasks
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={6} style={{ ...gridItemStyle2 }}>
+                    <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                      {data.stats.openTasks}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      mt={1}
+                      alignItems="center"
+                    >
+                      <Avatar
+                        sx={{ bgcolor: successColor, width: 27, height: 27 }}
+                      >
+                        <IconArrowUpLeft width={20} color="#FFFFFF" />
+                      </Avatar>
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight="600"
+                        color="#FFFFFF"
+                      >
+                        All Open Tasks
+                      </Typography>
+                    </Stack>
+                  </Grid>
 
-            {/* Second row */}
-            <Grid item xs={6} style={{ ...gridItemStyle3 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                {data.stats.inProgressTasks}
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: warningColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All In-Progress Tasks
-                </Typography>
-              </Stack>
+                  {/* Second row */}
+                  <Grid item xs={6} style={{ ...gridItemStyle3 }}>
+                    <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                      {data.stats.inProgressTasks}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      mt={1}
+                      alignItems="center"
+                    >
+                      <Avatar
+                        sx={{ bgcolor: warningColor, width: 27, height: 27 }}
+                      >
+                        <IconArrowUpLeft width={20} color="#FFFFFF" />
+                      </Avatar>
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight="600"
+                        color="#FFFFFF"
+                      >
+                        All In-Progress Tasks
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={6} style={{ ...gridItemStyle4 }}>
+                    <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                      {data.stats.completedTasks}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      mt={1}
+                      alignItems="center"
+                    >
+                      <Avatar
+                        sx={{ bgcolor: infoColor, width: 27, height: 27 }}
+                      >
+                        <IconArrowUpLeft width={20} color="#FFFFFF" />
+                      </Avatar>
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight="600"
+                        color="#FFFFFF"
+                      >
+                        All Completed Tasks
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={6} style={{ ...gridItemStyle4 }}>
-              <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                {data.stats.completedTasks}
-              </Typography>
-              <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                <Avatar sx={{ bgcolor: infoColor, width: 27, height: 27 }}>
-                  <IconArrowUpLeft width={20} color="#FFFFFF" />
-                </Avatar>
-                <Typography variant="subtitle2" fontWeight="600" color="#FFFFFF">
-                  All Completed Tasks
-                </Typography>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Grid>
+          </DashboardCard>
+        ))}
       </Grid>
-    </DashboardCard>
-  ))}
-</Grid>
-
     </>
   );
 };

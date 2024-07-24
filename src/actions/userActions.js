@@ -112,8 +112,10 @@ export const updateUser = (id, formData) => async (dispatch) => {
 // Delete user
 export const deleteUser = (id) => async (dispatch) => {
   try {
-    await axios.delete(`${ip}/api/users/${id}`);
-
+    const response = await axios.delete(`${ip}/api/users/${id}`);
+    if (response.data.message) {
+      showLottiePopup("User deleted successfully");
+    }
     dispatch({
       type: DELETE_USER,
       payload: id,

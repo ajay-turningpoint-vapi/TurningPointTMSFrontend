@@ -14,7 +14,7 @@ const showLottiePopup = (text) => {
     popupElement.style.display = "flex";
     popupElement.style.justifyContent = "center";
     popupElement.style.alignItems = "center";
-    popupElement.style.zIndex = "1000";
+    popupElement.style.zIndex = "10000";
 
     const containerElement = document.createElement("div");
     containerElement.style.backgroundColor = "white";
