@@ -266,8 +266,12 @@ const TypographyPage = () => {
   };
 
   const handleDeleteClick = (id) => {
-    dispatch(deleteTask(id));
+    const confirmed = window.confirm("Are you sure you want to delete this task?");
+    if (confirmed) {
+      dispatch(deleteTask(id));
+    }
   };
+  
 
   const handleIconClick = (type) => {
     if (type === "audio") {
