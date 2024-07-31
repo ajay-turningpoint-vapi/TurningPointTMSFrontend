@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import ProfileImg from "../../../assets/images/profile/user-1.jpg";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { updateUserProfile } from "../../../actions/userActions";
 import { IconUser } from "@tabler/icons-react";
@@ -202,6 +202,7 @@ const ProfileDialog = ({ open, onClose, profile, onUpdate }) => {
 };
 
 const ProfilePage = () => {
+  const dispatch = useDispatch();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [profile, setProfile] = useState({
     userName: "",
@@ -231,14 +232,7 @@ const ProfilePage = () => {
   };
 
   const handleUpdateProfile = async (updatedProfile) => {
-    try {
-      const response = await updateUserProfile(updatedProfile);
-      if (response.data) {
-        await showLottiePopup("Profile Updated");
-      }
-    } catch (error) {
-      console.error("An error occurred while updating the profile:", error);
-    }
+    dispatch(updateUserProfile(updatedProfile));
   };
 
   return (

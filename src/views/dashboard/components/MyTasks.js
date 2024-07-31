@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-
-import DashboardCard from "../../components/shared/DashboardCard";
-import ProfileImg from "../../assets/images/profile/user-1.jpg";
-import ImagePdf from "../../assets/images/pdfImage.png";
+import ImagePdf from "../../../assets/images/pdfImage.png";
+import DashboardCard from "../../../components/shared/DashboardCard";
+import ProfileImg from "../../../assets/images/pdfImage.png";
 import {
   Typography,
   Box,
@@ -57,12 +56,13 @@ import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 import {
   deleteTask,
   getTasks,
+  getMyTasks,
   updateTask,
   updateTaskStatus,
-} from "../../actions/taskActions";
-import showLottiePopup from "./LottiePopup";
-import { getUsers } from "../../actions/userActions";
-import { uploadFiles } from "../../actions/commonFileUpload";
+} from "../../../actions/taskActions";
+
+import { getUsers } from "../../../actions/userActions";
+import { uploadFiles } from "../../../actions/commonFileUpload";
 const blink = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -79,7 +79,7 @@ const CustomAlert = styled(Alert)(({ theme }) => ({
     animation: `${blink} 3s infinite`,
   },
 }));
-const TypographyPage = () => {
+const MyTasks = () => {
   const dispatch = useDispatch();
   const { tasks, error } = useSelector((state) => state.tasks);
   const { users } = useSelector((state) => state.users);
@@ -135,7 +135,7 @@ const TypographyPage = () => {
   };
 
   useEffect(() => {
-    dispatch(getTasks());
+    dispatch(getMyTasks());
     dispatch(getUsers());
   }, [dispatch]);
 
@@ -180,21 +180,18 @@ const TypographyPage = () => {
     }
   };
 
-  const handleSave = async (e, task) => {
+  const handleSave = (e, taskId) => {
     e.preventDefault();
 
-    const updatedTask = await dispatch(
-      updateTaskStatus(task._id, newStatus, reason, attachments, user?.emailID)
+    dispatch(
+      updateTaskStatus(taskId, newStatus, reason, attachments, user?.emailID)
     );
-
-    // Update the local state with the updated task data
-    setSelectedTask(updatedTask);
 
     setShowReason(false);
     setReason("");
     setNewStatus("");
     setAttachments([]);
-    // handleDialogClose();
+    handleDialogClose();
   };
 
   const getPriorityColor = (priority) => {
@@ -464,7 +461,6 @@ const TypographyPage = () => {
       setLoading(false);
     }
   };
-
   const handleDeleteAttachment = (index) => {
     const updatedAttachments = [...attachments];
     updatedAttachments.splice(index, 1);
@@ -616,7 +612,7 @@ const TypographyPage = () => {
                   <>
                     <TableCell>
                       <Typography variant="h6" fontWeight={600}>
-                        Assigned To
+                        Assigned By
                       </Typography>
                     </TableCell>
                   </>
@@ -680,11 +676,7 @@ const TypographyPage = () => {
                             textOverflow: "ellipsis",
                           }}
                         >
-                          <Typography
-                            variant="subtitle2"
-                            fontWeight={600}
-                            style={{ textOverflow: "ellipsis" }}
-                          >
+                          <Typography variant="subtitle2" fontWeight={600}>
                             {taskDetail.title}
                           </Typography>
                         </Box>
@@ -697,7 +689,7 @@ const TypographyPage = () => {
                         variant="subtitle2"
                         fontWeight={400}
                       >
-                        {taskDetail.assignTo}
+                        {taskDetail.createdBy}
                       </Typography>
                     </TableCell>
 
@@ -1179,41 +1171,45 @@ const TypographyPage = () => {
                       selectedTask.attachments.map((attachment, index) => (
                         <Box key={index} sx={{ mb: 1 }}>
                           <Typography variant="body1" gutterBottom>
-                            {attachment.type === "image" && (
-                              <img
-                                src={attachment.path}
-                                alt={`Attachment ${index}`}
-                                style={{
-                                  maxWidth: "100px",
-                                  maxHeight: "100px",
-                                }}
-                              />
-                            )}
-                            {attachment.type === "application" && (
-                              <a
-                                href={attachment?.path}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <img
-                                  src={ImagePdf}
-                                  alt={`Attachment ${index}`}
-                                  style={{
-                                    maxWidth: "100px",
-                                    maxHeight: "100px",
-                                  }}
-                                />
-                              </a>
-                            )}
-                            {attachment.type === "audio" && (
-                              <audio controls>
-                                <source
-                                  src={attachment?.path}
-                                  type="audio/wav"
-                                />
-                                Your browser does not support the audio element.
-                              </audio>
-                            )}
+                             {attachment.type ===
+                                                  "image" && (
+                                                  <img
+                                                    src={attachment.path}
+                                                    alt={`Attachment ${index}`}
+                                                    style={{
+                                                      maxWidth: "100px",
+                                                      maxHeight: "100px",
+                                                    }}
+                                                  />
+                                                )}
+                                                {attachment.type ===
+                                                  "application" && (
+                                                  <a
+                                                    href={attachment?.path}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                  >
+                                                    <img
+                                                      src={ImagePdf}
+                                                      alt={`Attachment ${index}`}
+                                                      style={{
+                                                        maxWidth: "100px",
+                                                        maxHeight: "100px",
+                                                      }}
+                                                    />
+                                                  </a>
+                                                )}
+                                                {attachment.type ===
+                                                  "audio" && (
+                                                  <audio controls>
+                                                    <source
+                                                      src={attachment?.path}
+                                                      type="audio/wav"
+                                                    />
+                                                    Your browser does not
+                                                    support the audio element.
+                                                  </audio>
+                                                )}
                           </Typography>
                         </Box>
                       ))}
@@ -1455,7 +1451,7 @@ const TypographyPage = () => {
                   ))}
 
                 <Button
-                  onClick={(e) => handleSave(e, selectedTask)}
+                  onClick={(e) => handleSave(e, selectedTask._id)}
                   variant="contained"
                   color="primary"
                   fullWidth
@@ -1477,4 +1473,4 @@ const TypographyPage = () => {
   );
 };
 
-export default TypographyPage;
+export default MyTasks;

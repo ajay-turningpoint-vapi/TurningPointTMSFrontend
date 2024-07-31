@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-
-import DashboardCard from "../../components/shared/DashboardCard";
-import ProfileImg from "../../assets/images/profile/user-1.jpg";
-import ImagePdf from "../../assets/images/pdfImage.png";
+import ImagePdf from "../../../assets/images/pdfImage.png";
+import DashboardCard from "../../../components/shared/DashboardCard";
+import ProfileImg from "../../../assets/images/profile/user-1.jpg";
 import {
   Typography,
   Box,
@@ -58,11 +57,12 @@ import {
   deleteTask,
   getTasks,
   updateTask,
+  getDelegatedTasks,
   updateTaskStatus,
-} from "../../actions/taskActions";
-import showLottiePopup from "./LottiePopup";
-import { getUsers } from "../../actions/userActions";
-import { uploadFiles } from "../../actions/commonFileUpload";
+} from "../../../actions/taskActions";
+
+import { getUsers } from "../../../actions/userActions";
+import { uploadFiles } from "../../../actions/commonFileUpload";
 const blink = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -79,7 +79,7 @@ const CustomAlert = styled(Alert)(({ theme }) => ({
     animation: `${blink} 3s infinite`,
   },
 }));
-const TypographyPage = () => {
+const DelegatedTasks = () => {
   const dispatch = useDispatch();
   const { tasks, error } = useSelector((state) => state.tasks);
   const { users } = useSelector((state) => state.users);
@@ -135,7 +135,7 @@ const TypographyPage = () => {
   };
 
   useEffect(() => {
-    dispatch(getTasks());
+    dispatch(getDelegatedTasks());
     dispatch(getUsers());
   }, [dispatch]);
 
@@ -180,21 +180,18 @@ const TypographyPage = () => {
     }
   };
 
-  const handleSave = async (e, task) => {
+  const handleSave = (e, taskId) => {
     e.preventDefault();
 
-    const updatedTask = await dispatch(
-      updateTaskStatus(task._id, newStatus, reason, attachments, user?.emailID)
+    dispatch(
+      updateTaskStatus(taskId, newStatus, reason, attachments, user?.emailID)
     );
-
-    // Update the local state with the updated task data
-    setSelectedTask(updatedTask);
 
     setShowReason(false);
     setReason("");
     setNewStatus("");
     setAttachments([]);
-    // handleDialogClose();
+    handleDialogClose();
   };
 
   const getPriorityColor = (priority) => {
@@ -464,7 +461,6 @@ const TypographyPage = () => {
       setLoading(false);
     }
   };
-
   const handleDeleteAttachment = (index) => {
     const updatedAttachments = [...attachments];
     updatedAttachments.splice(index, 1);
@@ -680,11 +676,7 @@ const TypographyPage = () => {
                             textOverflow: "ellipsis",
                           }}
                         >
-                          <Typography
-                            variant="subtitle2"
-                            fontWeight={600}
-                            style={{ textOverflow: "ellipsis" }}
-                          >
+                          <Typography variant="subtitle2" fontWeight={600}>
                             {taskDetail.title}
                           </Typography>
                         </Box>
@@ -1455,7 +1447,7 @@ const TypographyPage = () => {
                   ))}
 
                 <Button
-                  onClick={(e) => handleSave(e, selectedTask)}
+                  onClick={(e) => handleSave(e, selectedTask._id)}
                   variant="contained"
                   color="primary"
                   fullWidth
@@ -1477,4 +1469,4 @@ const TypographyPage = () => {
   );
 };
 
-export default TypographyPage;
+export default DelegatedTasks;

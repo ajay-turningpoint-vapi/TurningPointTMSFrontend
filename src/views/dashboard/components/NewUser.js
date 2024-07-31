@@ -53,7 +53,7 @@ const NewUser = () => {
     phone: "",
     role: "",
     password: "",
-    reportingTo: "",
+   
   });
 
   const handleChange = (e) => {
@@ -158,15 +158,7 @@ const NewUser = () => {
                   onChange={handleChange}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="reportingTo"
-                  label="Reporting To"
-                  value={formData.reportingTo}
-                  onChange={handleChange}
-                />
-              </Grid>
+          
             </Grid>
             <Button
               type="submit"

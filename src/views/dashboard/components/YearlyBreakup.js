@@ -12,7 +12,7 @@ import {
   Box,
   Modal,
 } from "@mui/material";
-import { IconArrowUpLeft } from "@tabler/icons-react";
+import { IconArrowUpLeft,IconUsers } from "@tabler/icons-react";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import { getAllUsersPerformance } from "../../../actions/dashboardActions";
@@ -47,6 +47,8 @@ const YearlyBreakup = () => {
   const successColor = theme.palette.success.main;
   const warningColor = theme.palette.warning.main;
   const infoColor = theme.palette.info.main;
+  const complementaryColor = theme.palette.grey[50]; // Light gray
+
 
   // Custom styles for grid items
   const gridItemStyleBase = {
@@ -85,6 +87,13 @@ const YearlyBreakup = () => {
     ...gridItemStyleBase,
     backgroundColor: infoColor,
     borderColor: infoColor,
+    maxHeight: "200px",
+    maxWidth: "300px",
+  };
+  const gridItemStyle5 = {
+    ...gridItemStyleBase,
+    backgroundColor: complementaryColor,
+    borderColor: complementaryColor,
     maxHeight: "200px",
     maxWidth: "300px",
   };
@@ -361,6 +370,44 @@ const YearlyBreakup = () => {
                         </Typography>
                       </Stack>
                     </Grid>
+
+                    <Grid
+                      item
+                      xs={6}
+                      style={{
+                        ...gridItemStyle5 ,
+                        cursor: "pointer",
+                        transition: "background-color 0.3s",
+                        "&:hover": {
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        },
+                      }}
+                      onClick={() =>
+                        setSelectedLeader(
+                          selectedLeader === index ? null : index
+                        )
+                      }
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                     
+                          <IconUsers width={50} color="black" />
+                       
+                        <Typography
+                          variant="h5"
+                          fontWeight="500"
+                          color="black"
+                        >
+                          {selectedLeader === index
+                            ? "Hide Team Members"
+                            : "View Team Members"}
+                        </Typography>
+                      </Stack>
+                    </Grid>
                   </Grid>
                 </Grid>
                 <Grid item xs={12} sm={5}>
@@ -386,26 +433,6 @@ const YearlyBreakup = () => {
                           height={300}
                         />
                       )}
-                      <Button
-                        variant="contained"
-                        onClick={() =>
-                          setSelectedLeader(
-                            selectedLeader === index ? null : index
-                          )
-                        }
-                        // size="small"
-                        // endIcon={<ArrowCircleRightIcon />}
-                        style={{
-                          marginTop: "20px",
-                          display: "block",
-                          marginLeft: "auto",
-                          marginRight: "auto",
-                        }}
-                      >
-                        {selectedLeader === index
-                          ? "Hide Team Members"
-                          : "View Team Members"}
-                      </Button>
                     </CardContent>
                   </Card>
                 </Grid>

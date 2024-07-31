@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTask } from "../../actions/taskActions";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import DashboardCard from "../../components/shared/DashboardCard";
+import { uploadFiles } from "../../actions/commonFileUpload";
 
 const Icons = () => {
   const navigate = useNavigate();
@@ -184,20 +185,26 @@ const Icons = () => {
     }
   };
 
-  const handleAttachmentChange = (e) => {
+  const handleAttachmentChange = async (e) => {
     const files = Array.from(e.target.files);
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const fileUrls = await uploadFiles(files);
+
       setAttachments((prevAttachments) => [
         ...prevAttachments,
-        ...files.map((file) => ({
-          type: file.type.split("/")[0],
-          path: URL.createObjectURL(file),
-          name: file.name,
+        ...fileUrls.map((url, index) => ({
+          type: files[index].type.split("/")[0],
+          path: url,
+          name: files[index].name,
         })),
       ]);
+    } catch (error) {
+      // Handle the error if necessary
+    } finally {
       setLoading(false);
-    }, 1000); // Simulate loading
+    }
   };
 
   const handlePlayAudio = (url) => {
@@ -284,7 +291,7 @@ const Icons = () => {
         };
       }
 
-      dispatch(addTask(newTask));
+      dispatch(addTask(newTask,navigate));
     }
     setTitle("");
     setDescription("");

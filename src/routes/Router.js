@@ -5,6 +5,8 @@ import PrivateRoute from "./PrivateRoute";
 import NewUser from "../views/dashboard/components/NewUser";
 import UsersDashboard from "../views/dashboard/components/UsersDashboard";
 import OverDueTasks from "../views/dashboard/components/OverDueTasks";
+import MyTasks from "../views/dashboard/components/MyTasks";
+import DelegatedTasks from "../views/dashboard/components/DelegatedTasks";
 
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import("../layouts/full/FullLayout")));
@@ -47,7 +49,23 @@ const Router = [
         ),
         children: [{ path: "/dashboard", exact: true, element: <Dashboard /> }],
       },
-      
+      {
+        path: "/my-tasks",
+        element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,
+        children: [{ path: "/my-tasks", exact: true, element: <MyTasks /> }],
+      },
+      {
+        path: "/delegated-tasks",
+        element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,
+        children: [
+          {
+            path: "/delegated-tasks",
+            exact: true,
+            element: <DelegatedTasks />,
+          },
+        ],
+      },
+
       {
         path: "/all-users",
         element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,

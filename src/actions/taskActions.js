@@ -15,17 +15,19 @@ import showLottiePopup from "../views/utilities/LottiePopup";
 
 // Get tasks
 export const getTasks =
-  (isDelay = false) =>
+  (isDelayed = false) =>
   async (dispatch) => {
     try {
-      // Construct the URL based on whether isDelay is true or false
-      const url = isDelay ? `${ip}/api/tasks?isDelay=true` : `${ip}/api/tasks`;
+      // Construct the URL based on whether isDelayed is true or false
+      const url = isDelayed
+        ? `${ip}/api/tasks?isDelayed=true`
+        : `${ip}/api/tasks`;
 
       const res = await axios.get(url);
 
       dispatch({
         type: GET_TASKS,
-        payload: res.data,
+        payload: res.data.tasks,
       });
     } catch (err) {
       dispatch({
@@ -34,7 +36,37 @@ export const getTasks =
       });
     }
   };
+export const getMyTasks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${ip}/api/tasks/mytasks`);
 
+    dispatch({
+      type: GET_TASKS,
+      payload: res.data.tasks,
+    });
+  } catch (err) {
+    dispatch({
+      type: TASK_ERROR,
+      payload: { message: err.response?.data.message },
+    });
+  }
+};
+
+export const getDelegatedTasks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${ip}/api/tasks/delegatedtasks`);
+
+    dispatch({
+      type: GET_TASKS,
+      payload: res.data.tasks,
+    });
+  } catch (err) {
+    dispatch({
+      type: TASK_ERROR,
+      payload: { message: err.response?.data.message },
+    });
+  }
+};
 // Get task by ID
 export const getTask = (id) => async (dispatch) => {
   try {
@@ -53,7 +85,7 @@ export const getTask = (id) => async (dispatch) => {
 };
 
 // Add task
-export const addTask = (formData) => async (dispatch) => {
+export const addTask = (formData, navigate) => async (dispatch) => {
   try {
     const res = await axios.post(`${ip}/api/tasks`, formData);
 
@@ -63,6 +95,7 @@ export const addTask = (formData) => async (dispatch) => {
     });
 
     if (res) await showLottiePopup("New Task Created");
+    navigate("/all-tasks");
   } catch (err) {
     console.log(err);
     dispatch({
@@ -79,6 +112,7 @@ export const updateTask = (id, formData) => async (dispatch) => {
     if (res.data) {
       showLottiePopup("Task Updated");
     }
+
     dispatch({
       type: UPDATE_TASK,
       payload: res.data,
@@ -107,26 +141,21 @@ const updateTaskStatusFailure = (error) => ({
   payload: error,
 });
 
-export const updateTaskStatus = (
-  taskId,
-  newStatus,
-  reason,
-  changesAttachments,
-  updatedTaskBy
-) => {
+export const updateTaskStatus = (taskId, newStatus, reason, attachments) => {
   return async (dispatch) => {
     dispatch(updateTaskStatusRequest());
     try {
       const response = await axios.put(`${ip}/api/tasks/${taskId}/status`, {
         newStatus,
         reason,
-        changesAttachments,
+        changesAttachments: attachments,
       });
       if (response.data) {
         showLottiePopup("Task Updated");
       }
 
       dispatch(updateTaskStatusSuccess(response.data.task));
+      dispatch(getTasks());
     } catch (error) {
       dispatch(updateTaskStatusFailure(error.message));
     }

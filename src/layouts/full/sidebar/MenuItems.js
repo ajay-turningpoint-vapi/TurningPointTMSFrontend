@@ -9,6 +9,8 @@ import {
   IconUserPlus,
   IconClockX,
   IconList,
+  IconCheckupList,
+  IconClipboardList,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -31,9 +33,21 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Tasks",
+    title: "All Tasks",
     icon: IconList,
     href: "/all-tasks",
+  },
+  {
+    id: uniqueId(),
+    title: "My Tasks",
+    icon: IconCheckupList,
+    href: "/my-tasks",
+  },
+  {
+    id: uniqueId(),
+    title: "Delegated Tasks",
+    icon: IconClipboardList,
+    href: "/delegated-tasks",
   },
   {
     id: uniqueId(),

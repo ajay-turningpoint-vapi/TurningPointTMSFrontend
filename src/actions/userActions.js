@@ -7,6 +7,8 @@ import {
   DELETE_USER,
   USER_ERROR,
   CREATE_USER,
+  UPDATE_USER_PROFILE,
+  UPDATE_USER_PROFILE_ERROR,
 } from "./types";
 import { ip } from "../utils/ipconfig";
 import showLottiePopup from "../views/utilities/LottiePopup";
@@ -128,7 +130,20 @@ export const deleteUser = (id) => async (dispatch) => {
   }
 };
 
-export const updateUserProfile = async (formData) => {
-  const res = await axios.put(`${ip}/api/users/profile`, formData);
-  return res;
+export const updateUserProfile = (formData) => async (dispatch) => {
+  try {
+    const res = await axios.put(`${ip}/api/users/profile`, formData);
+    if (res.data) {
+      showLottiePopup("Profile Updated!!");
+    }
+    dispatch({
+      type: UPDATE_USER_PROFILE,
+      payload: res.data,
+    });
+  } catch (err) {
+    dispatch({
+      type: UPDATE_USER_PROFILE_ERROR,
+      payload: { msg: err.response.statusText, status: err.response.status },
+    });
+  }
 };

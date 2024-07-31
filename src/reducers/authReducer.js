@@ -4,6 +4,8 @@ import {
   AUTH_ERROR,
   LOGOUT,
   CLEAR_ERRORS,
+  UPDATE_USER_PROFILE,
+  UPDATE_USER_PROFILE_ERROR,
 } from "../actions/types";
 
 const initialState = {
@@ -25,6 +27,18 @@ export default function (state = initialState, action) {
         ...state,
         ...payload,
         isAuthenticated: true,
+        loading: false,
+      };
+    case UPDATE_USER_PROFILE:
+      return {
+        ...state,
+        user: payload,
+        loading: false,
+      };
+    case UPDATE_USER_PROFILE_ERROR:
+      return {
+        ...state,
+        authError: payload,
         loading: false,
       };
     case AUTH_ERROR:
