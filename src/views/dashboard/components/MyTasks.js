@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import ImagePdf from "../../../assets/images/pdfImage.png";
+
 import DashboardCard from "../../../components/shared/DashboardCard";
-import ProfileImg from "../../../assets/images/pdfImage.png";
+import ProfileImg from "../../../assets/images/profile/user-1.jpg";
+import ImagePdf from "../../../assets/images/pdfImage.png";
 import {
   Typography,
   Box,
