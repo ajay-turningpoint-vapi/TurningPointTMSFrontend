@@ -9,6 +9,7 @@ import {
   UPDATE_TASK_STATUS_REQUEST,
   UPDATE_TASK_STATUS_SUCCESS,
   UPDATE_TASK_STATUS_FAILURE,
+  ADD_CATEGORY,
 } from "./types";
 import { ip } from "../utils/ipconfig";
 import showLottiePopup from "../views/utilities/LottiePopup";
@@ -93,7 +94,7 @@ export const addTask = (formData, navigate) => async (dispatch) => {
       type: ADD_TASK,
       payload: res.data,
     });
-
+    console.log(res);
     if (res) await showLottiePopup("New Task Created");
     navigate("/all-tasks");
   } catch (err) {
@@ -178,4 +179,18 @@ export const deleteTask = (id) => async (dispatch) => {
       payload: { msg: err.response.statusText, status: err.response.status },
     });
   }
+};
+
+//add category
+export const addCategory = (category) => ({
+  type: ADD_CATEGORY,
+  payload: category,
+});
+export const addCategoryThunk = (category) => {
+  return (dispatch, getState) => {
+    // Simulate an async operation
+    setTimeout(() => {
+      dispatch(addCategory(category));
+    }, 500);
+  };
 };

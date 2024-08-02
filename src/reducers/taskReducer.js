@@ -8,6 +8,7 @@ import {
   UPDATE_TASK_STATUS_REQUEST,
   UPDATE_TASK_STATUS_SUCCESS,
   UPDATE_TASK_STATUS_FAILURE,
+  ADD_CATEGORY,
 } from "../actions/types";
 
 const initialState = {
@@ -15,6 +16,7 @@ const initialState = {
   task: null,
   loading: true,
   error: {},
+  categories: ["IT", "Finance", "Admin", "HR", "Sales"],
 };
 
 export default function (state = initialState, action) {
@@ -66,6 +68,11 @@ export default function (state = initialState, action) {
         ...state,
         error: payload,
         loading: false,
+      };
+    case ADD_CATEGORY:
+      return {
+        ...state,
+        categories: [...state.categories, action.payload],
       };
     default:
       return state;

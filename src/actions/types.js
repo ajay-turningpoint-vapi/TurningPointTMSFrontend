@@ -24,3 +24,6 @@ export const UPDATE_USER = "UPDATE_USER";
 export const DELETE_USER = "DELETE_USER";
 export const USER_ERROR = "USER_ERROR";
 export const USER_LOADED = "USER_LOADED";
+
+export const ADD_CATEGORY = 'ADD_CATEGORY';
+

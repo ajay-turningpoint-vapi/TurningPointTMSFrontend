@@ -82,6 +82,7 @@ const CustomAlert = styled(Alert)(({ theme }) => ({
 const DelegatedTasks = () => {
   const dispatch = useDispatch();
   const { tasks, error } = useSelector((state) => state.tasks);
+  const { categories } = useSelector((state) => state.tasks);
   const { users } = useSelector((state) => state.users);
   const { user } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
@@ -940,11 +941,11 @@ const DelegatedTasks = () => {
                         value={editedTask.category}
                         onChange={handleInputChange}
                       >
-                        <MenuItem value="Sales">Sales</MenuItem>
-                        <MenuItem value="Finance">Finance</MenuItem>
-                        <MenuItem value="Admin">Admin</MenuItem>
-                        <MenuItem value="IT">IT</MenuItem>
-                        <MenuItem value="HR">HR</MenuItem>
+                        {categories.map((cat, index) => (
+                      <MenuItem key={index} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
                       </TextField>
                     ) : (
                       <Typography variant="body1" gutterBottom>

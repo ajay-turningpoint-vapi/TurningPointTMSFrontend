@@ -7,7 +7,13 @@ import {
   Card,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   IconButton,
   InputLabel,
@@ -32,7 +38,7 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import { addTask } from "../../actions/taskActions";
+import { addCategoryThunk, addTask } from "../../actions/taskActions";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import DashboardCard from "../../components/shared/DashboardCard";
 import { uploadFiles } from "../../actions/commonFileUpload";
@@ -41,52 +47,43 @@ const Icons = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
+  const { categories } = useSelector((state) => state.tasks);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [assignTo, setAssignTo] = useState("");
-  const [priority, setPriority] = useState("");
-  const [dueDate, setDueDateTime] = useState("");
-  const [reminderFrequency, setReminderFrequency] = useState("");
-  const [reminderStartDate, setReminderStartDate] = useState("");
+  // State
+  const [formValues, setFormValues] = useState({
+    title: "",
+    description: "",
+    category: "",
+    assignTo: "",
+    priority: "",
+    dueDate: "",
+    reminderFrequency: "",
+    reminderStartDate: "",
+
+    repeatFrequency: "",
+    dailyDate: "",
+    weeklyDays: [],
+    monthlyDays: [],
+  });
+
+  const [errors, setErrors] = useState({});
+  const [newCategory, setNewCategory] = useState("");
+  const [open, setOpen] = useState(false);
+  const [counter, setCounter] = useState(0); // Counter state for recording duration
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const intervalRef = useRef(null);
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioURL, setAudioURL] = useState(null);
-  const [errors, setErrors] = useState({});
-
-  const [counter, setCounter] = useState(0); // Counter state for recording duration
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const intervalRef = useRef(null);
-
   const audioRef = useRef(null);
-  const validate = () => {
-    let tempErrors = {};
-    tempErrors.title = title ? "" : "Title is required";
-    tempErrors.description = description ? "" : "Description is required";
-    tempErrors.category = category ? "" : "Category is required";
-    tempErrors.assignTo = assignTo ? "" : "Assign To is required";
-    tempErrors.priority = priority ? "" : "Priority is required";
-    tempErrors.dueDate = dueDate ? "" : "Due Date is required";
-    if (reminderFrequency) {
-      tempErrors.reminderStartDate = reminderStartDate
-        ? ""
-        : "Reminder Start Date is required if reminder is set";
-    }
-
-    setErrors(tempErrors);
-    return Object.values(tempErrors).every((x) => x === "");
-  };
-
   useEffect(() => {
     dispatch(getUsers());
-  }, []);
+  }, [dispatch]);
 
   const handleStartRecording = () => {
-    console.log("t");
     navigator.permissions
       .query({ name: "microphone" })
       .then((permissionStatus) => {
@@ -272,41 +269,224 @@ const Icons = () => {
     }
   };
 
+  const validate = () => {
+    const {
+      title,
+      description,
+      category,
+      assignTo,
+      priority,
+      dueDate,
+      reminderFrequency,
+      reminderStartDate,
+      repeatFrequency,
+    } = formValues;
+
+    let tempErrors = {};
+    tempErrors.title = title ? "" : "Title is required";
+    tempErrors.description = description ? "" : "Description is required";
+    tempErrors.category = category ? "" : "Category is required";
+    tempErrors.assignTo = assignTo ? "" : "Assign To is required";
+    tempErrors.priority = priority ? "" : "Priority is required";
+    tempErrors.dueDate = dueDate ? "" : "Due Date is required";
+
+    if (reminderFrequency) {
+      tempErrors.reminderStartDate = reminderStartDate
+        ? ""
+        : "Reminder Start Date is required if reminder is set";
+    }
+    if (repeatFrequency) {
+      // Removed validation for repeatUntil
+    }
+
+    setErrors(tempErrors);
+    return Object.values(tempErrors).every((x) => x === "");
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) {
-      const newTask = {
-        title,
-        description,
-        category,
-        assignTo,
-        priority,
-        dueDate,
-        attachments,
-      };
-      if (reminderFrequency && reminderStartDate) {
-        newTask.reminder = {
-          frequency: reminderFrequency,
-          startDate: reminderStartDate,
-        };
-      }
 
-      dispatch(addTask(newTask,navigate));
+    if (validate()) {
+      // Create the repeat object based on the form values
+      const repeat = formValues.repeatFrequency
+        ? {
+            frequency: formValues.repeatFrequency,
+            dailyDate:
+              formValues.repeatFrequency === "Daily"
+                ? formValues.dailyDate
+                : null,
+            weeklyDays:
+              formValues.repeatFrequency === "Weekly"
+                ? formValues.weeklyDays
+                : [],
+            monthlyDays:
+              formValues.repeatFrequency === "Monthly"
+                ? formValues.monthlyDays
+                : [],
+          }
+        : undefined;
+
+      // Create the reminder object based on the form values
+      const reminder =
+        formValues.reminderFrequency && formValues.reminderStartDate
+          ? {
+              frequency: formValues.reminderFrequency,
+              startDate: formValues.reminderStartDate,
+            }
+          : undefined;
+
+      // Create the new task object
+      const newTask = {
+        title: formValues.title,
+        description: formValues.description,
+        category: formValues.category,
+        assignTo: formValues.assignTo,
+        priority: formValues.priority,
+        dueDate: formValues.dueDate,
+        attachments,
+        repeat: repeat || null,
+        reminder: reminder || null,
+      };
+
+      // Dispatch action to add the task
+      dispatch(addTask(newTask, navigate));
+
+      // Clear form fields
+      setFormValues({
+        title: "",
+        description: "",
+        category: "",
+        assignTo: "",
+        priority: "",
+        dueDate: "",
+        reminderFrequency: "",
+        reminderStartDate: "",
+        repeatFrequency: "",
+        dailyDate: "",
+        weeklyDays: [],
+        monthlyDays: [],
+        attachments: [],
+      });
     }
-    setTitle("");
-    setDescription("");
-    setCategory("");
-    setAssignTo("");
-    setPriority("");
-    setDueDateTime("");
-    setAttachments([]);
-    setLoading(false);
-    setRecording(false);
-    setMediaRecorder(null);
-    setAudioURL(null);
-    setReminderFrequency("");
-    setReminderStartDate("");
-    setCounter(0); // Reset counter after submission
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory && !categories.includes(newCategory)) {
+      dispatch(addCategoryThunk(newCategory));
+      setNewCategory("");
+      setOpen(false);
+    }
+  };
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormValues((prev) => ({
+        ...prev,
+        [name]: checked
+          ? [...prev[name], value]
+          : prev[name].filter((item) => item !== value),
+      }));
+    } else {
+      setFormValues((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleMonthlyDayClick = (day) => {
+    setFormValues((prev) => {
+      const isSelected = prev.monthlyDays.includes(day);
+      return {
+        ...prev,
+        monthlyDays: isSelected
+          ? prev.monthlyDays.filter((d) => d !== day)
+          : [...prev.monthlyDays, day],
+      };
+    });
+  };
+
+  const renderRepeatOptions = () => {
+    switch (formValues.repeatFrequency) {
+      case "Daily":
+        return (
+          <TextField
+            name="dailyDate"
+            label="Start Date"
+            type="date"
+            value={formValues.dailyDate}
+            onChange={handleInputChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            style={{ marginTop: "16px" }}
+          />
+        );
+      case "Weekly":
+        return (
+          <FormGroup>
+            {[
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ].map((day) => (
+              <FormControlLabel
+                key={day}
+                control={
+                  <Checkbox
+                    value={day}
+                    checked={formValues.weeklyDays.includes(day)}
+                    onChange={handleInputChange}
+                    name="weeklyDays"
+                  />
+                }
+                label={day}
+              />
+            ))}
+          </FormGroup>
+        );
+      case "Monthly":
+        return (
+          <Box>
+            <Typography variant="h6" style={{ marginTop: "16px" }}>
+              Select Days of the Month
+            </Typography>
+            <Grid container spacing={1} style={{ marginTop: "8px" }}>
+              {Array.from({ length: 31 }, (_, i) => (
+                <Grid item xs={2} sm={1} key={i + 1}>
+                  <Box
+                    onClick={() => handleMonthlyDayClick(i + 1)}
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "50%",
+                      backgroundColor: formValues.monthlyDays.includes(i + 1)
+                        ? "primary.main"
+                        : "grey.300",
+                      color: formValues.monthlyDays.includes(i + 1)
+                        ? "white"
+                        : "black",
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: formValues.monthlyDays.includes(i + 1)
+                          ? "primary.dark"
+                          : "grey.400",
+                      },
+                    }}
+                  >
+                    {i + 1}
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -326,7 +506,7 @@ const Icons = () => {
             >
               <Avatar>
                 <TaskAltIcon />
-              </Avatar>{" "}
+              </Avatar>
               <Typography
                 variant="h5"
                 gutterBottom
@@ -338,6 +518,7 @@ const Icons = () => {
             </div>
 
             <Stack spacing={3}>
+              {/* Title */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -349,17 +530,19 @@ const Icons = () => {
                 </Typography>
                 <CustomTextField
                   id="title"
+                  name="title"
                   variant="outlined"
                   label="Enter Title..."
                   required
                   fullWidth
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={formValues.title}
+                  onChange={handleInputChange}
                   error={!!errors.title}
                   helperText={errors.title}
                 />
               </Box>
 
+              {/* Description */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -371,19 +554,21 @@ const Icons = () => {
                 </Typography>
                 <CustomTextField
                   id="description"
+                  name="description"
                   variant="outlined"
                   label="Enter description..."
                   required
                   fullWidth
                   multiline
                   minRows={4}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  value={formValues.description}
+                  onChange={handleInputChange}
                   error={!!errors.description}
                   helperText={errors.description}
                 />
               </Box>
 
+              {/* Category */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -397,22 +582,54 @@ const Icons = () => {
                   <TextField
                     required
                     label="Category"
+                    name="category"
                     fullWidth
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={formValues.category}
+                    onChange={handleInputChange}
                     error={!!errors.category}
                     helperText={errors.category}
                     select
                   >
-                    <MenuItem value="IT">IT</MenuItem>
-                    <MenuItem value="Finance">Finance</MenuItem>
-                    <MenuItem value="Admin">Admin</MenuItem>
-                    <MenuItem value="HR">HR</MenuItem>
-                    <MenuItem value="Sales">Sales</MenuItem>
+                    {categories.map((cat, index) => (
+                      <MenuItem key={index} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                    <MenuItem>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setOpen(true)}
+                      >
+                        Add Category
+                      </Button>
+                    </MenuItem>
                   </TextField>
                 </FormControl>
+                <Dialog open={open} onClose={() => setOpen(false)}>
+                  <DialogTitle>Add New Category</DialogTitle>
+                  <DialogContent>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="New Category"
+                      fullWidth
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpen(false)} color="primary">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddCategory} color="primary">
+                      Add
+                    </Button>
+                  </DialogActions>
+                </Dialog>
               </Box>
 
+              {/* Assign To */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -426,10 +643,11 @@ const Icons = () => {
                   <TextField
                     required
                     label="Assign To"
+                    name="assignTo"
                     fullWidth
                     select
-                    value={assignTo}
-                    onChange={(e) => setAssignTo(e.target.value)}
+                    value={formValues.assignTo}
+                    onChange={handleInputChange}
                     error={!!errors.assignTo}
                     helperText={errors.assignTo}
                   >
@@ -442,6 +660,7 @@ const Icons = () => {
                 </FormControl>
               </Box>
 
+              {/* Priority */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -453,15 +672,15 @@ const Icons = () => {
                 </Typography>
                 <FormControl fullWidth>
                   <TextField
-                    inputProps={{ "aria-label": "Without label" }}
+                    name="priority"
                     label="Select Priority"
                     required
-                    id="priority"
                     select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
+                    value={formValues.priority}
+                    onChange={handleInputChange}
                     error={!!errors.priority}
                     helperText={errors.priority}
+                    fullWidth
                   >
                     <MenuItem value="High">High</MenuItem>
                     <MenuItem value="Medium">Medium</MenuItem>
@@ -470,6 +689,7 @@ const Icons = () => {
                 </FormControl>
               </Box>
 
+              {/* Due Date and Time */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -481,17 +701,19 @@ const Icons = () => {
                 </Typography>
                 <CustomTextField
                   id="dueDate"
+                  name="dueDate"
                   type="datetime-local"
                   variant="outlined"
                   required
                   fullWidth
-                  value={dueDate}
-                  onChange={(e) => setDueDateTime(e.target.value)}
+                  value={formValues.dueDate}
+                  onChange={handleInputChange}
                   error={!!errors.dueDate}
                   helperText={errors.dueDate}
                 />
               </Box>
 
+              {/* Reminder */}
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -503,9 +725,10 @@ const Icons = () => {
                 </Typography>
                 <FormControl fullWidth>
                   <TextField
+                    name="reminderFrequency"
                     label="Reminder Frequency (Optional)"
-                    value={reminderFrequency}
-                    onChange={(e) => setReminderFrequency(e.target.value)}
+                    value={formValues.reminderFrequency}
+                    onChange={handleInputChange}
                     select
                     fullWidth
                   >
@@ -514,12 +737,13 @@ const Icons = () => {
                     <MenuItem value="Weekly">Weekly</MenuItem>
                     <MenuItem value="Monthly">Monthly</MenuItem>
                   </TextField>
-                  {reminderFrequency && (
+                  {formValues.reminderFrequency && (
                     <TextField
+                      name="reminderStartDate"
                       label="Reminder Start Date"
                       type="datetime-local"
-                      value={reminderStartDate}
-                      onChange={(e) => setReminderStartDate(e.target.value)}
+                      value={formValues.reminderStartDate}
+                      onChange={handleInputChange}
                       fullWidth
                       InputLabelProps={{ shrink: true }}
                       style={{ marginTop: "16px" }}
@@ -530,6 +754,34 @@ const Icons = () => {
                 </FormControl>
               </Box>
 
+              {/* Repeat */}
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  component="label"
+                  htmlFor="repeat"
+                >
+                  Repeat
+                </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    name="repeatFrequency"
+                    label="Repeat Frequency (Optional)"
+                    value={formValues.repeatFrequency}
+                    onChange={handleInputChange}
+                    select
+                    fullWidth
+                  >
+                    <MenuItem value="">Select Frequency</MenuItem>
+                    <MenuItem value="Daily">Daily</MenuItem>
+                    <MenuItem value="Weekly">Weekly</MenuItem>
+                    <MenuItem value="Monthly">Monthly</MenuItem>
+                  </TextField>
+
+                  {formValues.repeatFrequency && <>{renderRepeatOptions()}</>}
+                </FormControl>
+              </Box>
               <Box>
                 <Typography
                   variant="subtitle1"
@@ -576,6 +828,7 @@ const Icons = () => {
                   ))}
               </Box>
 
+              {/* Submit Button */}
               <Box>
                 <Button
                   color="primary"
