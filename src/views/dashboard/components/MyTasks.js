@@ -383,7 +383,7 @@ const MyTasks = () => {
               },
             ]);
           } catch (error) {
-            console.error("Error uploading audio file:", error);
+            alert("Error uploading audio file:", error);
           }
         };
 

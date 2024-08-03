@@ -6,6 +6,7 @@ import NavItem from "./NavItem";
 import NavGroup from "./NavGroup/NavGroup";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
+import filterMenuItems from "./MenuItems";
 const SidebarItems = () => {
   const { user } = useSelector((state) => state.auth);
   const { pathname } = useLocation();
@@ -13,10 +14,7 @@ const SidebarItems = () => {
   if (user?.role === null) {
     return <Navigate to="/auth/login" />;
   }
-  const itemsToRender =
-    user?.role === "Admin" || user?.role === "TeamLeader"
-      ? Menuitems
-      : MenuitemsForUsers;
+  const itemsToRender = filterMenuItems(user?.role);
 
   return (
     <Box sx={{ px: 3 }}>

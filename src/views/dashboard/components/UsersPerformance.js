@@ -23,7 +23,7 @@ const UsersPerformance = () => {
         const response = await getAllUsersPerformance();
         setUsersPerformance(response.allUsersPerformance);
       } catch (error) {
-        console.error('Error fetching users performance:', error);
+        alert('Error fetching users performance:', error);
       }
     };
 

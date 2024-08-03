@@ -10,7 +10,7 @@ import ProductPerformance from "./components/ProductPerformance";
 import Blog from "./components/Blog";
 import MonthlyEarnings from "./components/MonthlyEarnings";
 import UsersPerformance from "./components/UsersPerformance";
-import OverDueTasks from "./components/OverDueTasks";
+import DelayedTasks from "./components/DelayedTasks";
 import { useSelector } from "react-redux";
 import SingleUserStats from "./components/SingleUserStats";
 import TeamLeaderDashboard from "./TeamLeaderDashboard";

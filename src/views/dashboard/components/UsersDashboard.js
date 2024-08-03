@@ -1,5 +1,5 @@
 import React from "react";
-import OverDueTasks from "./OverDueTasks";
+import DelayedTasks from "./DelayedTasks";
 import PageContainer from "../../../components/container/PageContainer";
 import { Box, Grid } from "@mui/material";
 
@@ -11,7 +11,7 @@ const UsersDashboard = () => {
           <Grid item xs={12} lg={4}>
             <Grid container spacing={3}>
               <Grid item xs={12} lg={12}>
-                <OverDueTasks />
+                <DelayedTasks />
               </Grid>
             </Grid>
           </Grid>

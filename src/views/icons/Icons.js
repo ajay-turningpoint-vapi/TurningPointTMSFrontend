@@ -420,30 +420,32 @@ const Icons = () => {
         );
       case "Weekly":
         return (
-          <FormGroup>
-            {[
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-            ].map((day) => (
-              <FormControlLabel
-                key={day}
-                control={
-                  <Checkbox
-                    value={day}
-                    checked={formValues.weeklyDays.includes(day)}
-                    onChange={handleInputChange}
-                    name="weeklyDays"
-                  />
-                }
-                label={day}
-              />
-            ))}
-          </FormGroup>
+          <FormGroup style={{ flexDirection: 'row',marginTop:"10px" }}>
+          {[
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ].map((day) => (
+            
+            <FormControlLabel
+              key={day}
+              control={
+                <Checkbox
+                  value={day}
+                  checked={formValues.weeklyDays.includes(day)}
+                  onChange={handleInputChange}
+                  name="weeklyDays"
+                />
+              }
+              label={day}
+            />
+          ))}
+        </FormGroup>
+        
         );
       case "Monthly":
         return (

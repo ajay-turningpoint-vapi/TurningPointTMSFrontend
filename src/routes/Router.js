@@ -4,9 +4,12 @@ import Loadable from "../layouts/full/shared/loadable/Loadable";
 import PrivateRoute from "./PrivateRoute";
 import NewUser from "../views/dashboard/components/NewUser";
 import UsersDashboard from "../views/dashboard/components/UsersDashboard";
-import OverDueTasks from "../views/dashboard/components/OverDueTasks";
+import DelayedTasks from "../views/dashboard/components/DelayedTasks";
 import MyTasks from "../views/dashboard/components/MyTasks";
 import DelegatedTasks from "../views/dashboard/components/DelegatedTasks";
+import UsesPerformanceStats from "../views/dashboard/components/UsesPerformanceStats";
+import CategoriesPerformance from "../views/dashboard/components/CategoriesPerformance";
+import OverDueTasks from "../views/dashboard/components/OverDueTasks";
 
 /* ***Layouts**** */
 const FullLayout = Loadable(lazy(() => import("../layouts/full/FullLayout")));
@@ -65,6 +68,24 @@ const Router = [
           },
         ],
       },
+      {
+        path: "/overdued-tasks",
+        element: (
+          <PrivateRoute allowedRoles={["TeamLeader", "Admin", "User"]} />
+        ),
+        children: [
+          { path: "/overdued-tasks", exact: true, element: <OverDueTasks /> },
+        ],
+      },
+      {
+        path: "/delayed-tasks",
+        element: (
+          <PrivateRoute allowedRoles={["TeamLeader", "Admin", "User"]} />
+        ),
+        children: [
+          { path: "/delayed-tasks", exact: true, element: <DelayedTasks /> },
+        ],
+      },
 
       {
         path: "/all-users",
@@ -84,15 +105,7 @@ const Router = [
         element: <PrivateRoute allowedRoles={["TeamLeader", "Admin"]} />,
         children: [{ path: "/add-task", exact: true, element: <Icons /> }],
       },
-      {
-        path: "/overdue-tasks",
-        element: (
-          <PrivateRoute allowedRoles={["TeamLeader", "Admin", "User"]} />
-        ),
-        children: [
-          { path: "/overdue-tasks", exact: true, element: <OverDueTasks /> },
-        ],
-      },
+     
 
       {
         path: "/all-tasks",
@@ -101,6 +114,29 @@ const Router = [
         ),
         children: [
           { path: "/all-tasks", exact: true, element: <TypographyPage /> },
+        ],
+      },
+
+      {
+        path: "/users-performance",
+        element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,
+        children: [
+          {
+            path: "/users-performance",
+            exact: true,
+            element: <UsesPerformanceStats />,
+          },
+        ],
+      },
+      {
+        path: "/category-performance",
+        element: <PrivateRoute allowedRoles={["Admin", "TeamLeader"]} />,
+        children: [
+          {
+            path: "/category-performance",
+            exact: true,
+            element: <CategoriesPerformance />,
+          },
         ],
       },
       { path: "/ui/shadow", exact: true, element: <Shadow /> },

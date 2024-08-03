@@ -7,7 +7,7 @@ export const getAllUsersPerformance = async () => {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching performance data:", error);
+   alert("Error fetching performance data:", error);
     throw error;
   }
 };
@@ -20,7 +20,7 @@ export const getAllCategoryPerformance = async () => {
 
     return response;
   } catch (error) {
-    console.error("Error fetching performance data:", error);
+   alert("Error fetching performance data:", error);
     throw error;
   }
 };
@@ -32,7 +32,7 @@ export const getUserStats = async () => {
 
     return response;
   } catch (error) {
-    console.error("Error fetching performance data:", error);
+   alert("Error fetching performance data:", error);
     throw error;
   }
 };

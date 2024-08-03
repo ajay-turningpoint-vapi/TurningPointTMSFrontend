@@ -11,15 +11,16 @@ import {
   Typography,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { getOverdueTasks } from "../../../actions/taskActions";
+import { getDelayedTasks } from "../../../actions/taskActions";
 import moment from "moment";
 
-const OverDueTasks = () => {
+const DelayedTasks = () => {
   const { tasks, error } = useSelector((state) => state.tasks);
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(getOverdueTasks(true));
+    dispatch(getDelayedTasks());
   }, [dispatch]);
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
@@ -48,7 +49,7 @@ const OverDueTasks = () => {
     }
   };
   return (
-    <DashboardCard title="Overdue Tasks">
+    <DashboardCard title="Delayed Tasks">
       <Box sx={{ overflow: "auto", width: "100%" }}>
         <Table aria-label="simple table" sx={{ whiteSpace: "nowrap", mt: 2 }}>
           <TableHead>
@@ -82,12 +83,12 @@ const OverDueTasks = () => {
               </TableCell>
               <TableCell>
                 <Typography variant="h6" fontWeight={600}>
-                  Due On
+                  Complete On
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="h6" fontWeight={600}>
-                   Overdued
+                   Delayed
                 </Typography>
               </TableCell>
             </TableRow>
@@ -176,4 +177,4 @@ const OverDueTasks = () => {
   );
 };
 
-export default OverDueTasks;
+export default DelayedTasks;

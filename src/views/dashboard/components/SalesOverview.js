@@ -24,7 +24,7 @@ const SalesOverview = () => {
       console.log(response);
       setCategoryStats(response.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      alert("Error fetching data:", error);
     }
   };
 

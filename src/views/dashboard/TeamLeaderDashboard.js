@@ -9,7 +9,9 @@ import {
   Avatar,
 
 } from "@mui/material";
-import { IconArrowUpLeft } from "@tabler/icons-react";
+import { IconArrowUpLeft,  IconClock,
+  IconClockX,
+  IconClockCheck, } from "@tabler/icons-react";
 import {useSelector } from "react-redux";
 import { teamLeaderStatus } from "../../actions/userActions";
 import DashboardCard from "../../components/shared/DashboardCard";
@@ -19,7 +21,9 @@ const TeamLeaderDashboard = () => {
     completedTasks: 0,
     openTasks: 0,
     inProgressTasks: 0,
-    completionRate: 0,
+    completionRate: 0, overdueTasks: 0,
+    onTimeTasks: 0,
+    delayedTasks: 0,
   });
   const [memberStats, setMemberStats] = useState([]);
   const { user } = useSelector((state) => state.auth);
@@ -31,7 +35,7 @@ const TeamLeaderDashboard = () => {
         setStats(data.leaderStats.stats);
         setMemberStats(data.memberStatuses);
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        alert("Error fetching stats:", error);
       }
     };
 
@@ -43,7 +47,9 @@ const TeamLeaderDashboard = () => {
   const successColor = theme.palette.success.main;
   const warningColor = theme.palette.warning.main;
   const infoColor = theme.palette.info.main;
-
+  const inTime = "#EDF7ED";
+  const errorColor = "#FDEDED";
+  const overDue = "#ff7961";
   const getChartOptions = (color) => ({
     labels: ["Tasks"],
     colors: [color],
@@ -102,6 +108,30 @@ const TeamLeaderDashboard = () => {
     maxHeight: "200px",
     maxWidth: "300px",
   };
+  const gridItemStyle6 = {
+    ...gridItemStyleBase,
+    backgroundColor: overDue,
+    borderColor: overDue,
+    maxHeight: "200px",
+    maxWidth: "300px",
+  };
+
+  const gridItemStyle7 = {
+    ...gridItemStyleBase,
+    backgroundColor: inTime,
+    borderColor: inTime,
+    maxHeight: "200px",
+    maxWidth: "300px",
+  };
+
+  const gridItemStyle8 = {
+    ...gridItemStyleBase,
+    backgroundColor: errorColor,
+    borderColor: errorColor,
+    maxHeight: "200px",
+    maxWidth: "300px",
+  };
+
 
   return (
     <>
@@ -193,6 +223,68 @@ const TeamLeaderDashboard = () => {
                     </Typography>
                   </Stack>
                 </Grid>
+
+
+
+
+
+                <Grid item xs={6} style={{ ...gridItemStyle6 }}>
+                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                  {stats.overdueTasks}
+                </Typography>
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: overDue, width: 27, height: 27 }}>
+                    <IconClockX width={20} color="#FFFFFF" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="#FFFFFF"
+                  >
+                  All Overdue Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
+              <Grid item xs={6} style={{ ...gridItemStyle7 }}>
+              <Typography variant="h3" fontWeight="700" color="#1E4620">
+                {stats.onTimeTasks}
+              </Typography>
+              <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                <Avatar sx={{ bgcolor: inTime, width: 27, height: 27 }}>
+                  <IconClockCheck width={20} color="#1E4620" />
+                </Avatar>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight="600"
+                  color="#1E4620"
+                >
+                All In Time Tasks
+                </Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={6} style={{ ...gridItemStyle8 }}>
+            <Typography variant="h3" fontWeight="700" color="#5F2120">
+              {stats.delayedTasks}
+            </Typography>
+            <Stack direction="row" spacing={1} mt={1} alignItems="center">
+              <Avatar sx={{ bgcolor: "#FDEDED", width: 27, height: 27 }}>
+                <IconClock width={20} color="#5F2120" />
+              </Avatar>
+              <Typography
+                variant="subtitle2"
+                fontWeight="600"
+                color="#5F2120"
+              >
+              All Delayed Tasks
+              </Typography>
+            </Stack>
+          </Grid>
+
+
+
+
+
+
               </Grid>
             </Grid>
           </Grid>
@@ -349,6 +441,58 @@ const TeamLeaderDashboard = () => {
                       </Typography>
                     </Stack>
                   </Grid>
+                  <Grid item xs={6} style={{ ...gridItemStyle6 }}>
+                  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                    {data.stats.overdueTasks}
+                  </Typography>
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar sx={{ bgcolor: overDue, width: 27, height: 27 }}>
+                      <IconClockX width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="#FFFFFF"
+                    >
+                    All Overdue Tasks
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid item xs={6} style={{ ...gridItemStyle7 }}>
+                <Typography variant="h3" fontWeight="700" color="#1E4620">
+                  {data.stats.onTimeTasks}
+                </Typography>
+                <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                  <Avatar sx={{ bgcolor: inTime, width: 27, height: 27 }}>
+                    <IconClockCheck width={20} color="#1E4620" />
+                  </Avatar>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="600"
+                    color="#1E4620"
+                  >
+                  All In Time Tasks
+                  </Typography>
+                </Stack>
+              </Grid>
+              <Grid item xs={6} style={{ ...gridItemStyle8 }}>
+              <Typography variant="h3" fontWeight="700" color="#5F2120">
+                {data.stats.delayedTasks}
+              </Typography>
+              <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                <Avatar sx={{ bgcolor: "#FDEDED", width: 27, height: 27 }}>
+                  <IconClock width={20} color="#5F2120" />
+                </Avatar>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight="600"
+                  color="#5F2120"
+                >
+                All Delayed Tasks
+                </Typography>
+              </Stack>
+            </Grid>
+  
                 </Grid>
               </Grid>
             </Grid>

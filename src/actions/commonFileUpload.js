@@ -13,7 +13,7 @@ import { ip } from "../utils/ipconfig";
     });
     return response.data;
   } catch (error) {
-    console.error("Error uploading files:", error);
+    alert("Error uploading files:", error);
     throw error;
   }
 };

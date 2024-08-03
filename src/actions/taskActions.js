@@ -15,28 +15,54 @@ import { ip } from "../utils/ipconfig";
 import showLottiePopup from "../views/utilities/LottiePopup";
 
 // Get tasks
-export const getTasks =
-  (isDelayed = false) =>
-  async (dispatch) => {
-    try {
-      // Construct the URL based on whether isDelayed is true or false
-      const url = isDelayed
-        ? `${ip}/api/tasks?isDelayed=true`
-        : `${ip}/api/tasks`;
+export const getTasks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${ip}/api/tasks`);
 
-      const res = await axios.get(url);
+    dispatch({
+      type: GET_TASKS,
+      payload: res.data.tasks,
+    });
+  } catch (err) {
+    dispatch({
+      type: TASK_ERROR,
+      payload: { message: err.response?.data.message },
+    });
+  }
+};
 
-      dispatch({
-        type: GET_TASKS,
-        payload: res.data.tasks,
-      });
-    } catch (err) {
-      dispatch({
-        type: TASK_ERROR,
-        payload: { message: err.response?.data.message },
-      });
-    }
-  };
+export const getDelayedTasks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${ip}/api/tasks/delayed-tasks`);
+
+    dispatch({
+      type: GET_TASKS,
+      payload: res.data.tasks,
+    });
+  } catch (err) {
+    dispatch({
+      type: TASK_ERROR,
+      payload: { message: err.response?.data.message },
+    });
+  }
+};
+
+export const getOverdueTasks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${ip}/api/tasks/overdue-tasks`);
+
+    dispatch({
+      type: GET_TASKS,
+      payload: res.data.tasks,
+    });
+  } catch (err) {
+    dispatch({
+      type: TASK_ERROR,
+      payload: { message: err.response?.data.message },
+    });
+  }
+};
+
 export const getMyTasks = () => async (dispatch) => {
   try {
     const res = await axios.get(`${ip}/api/tasks/mytasks`);

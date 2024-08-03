@@ -11,6 +11,9 @@ import {
   IconList,
   IconCheckupList,
   IconClipboardList,
+  IconUsers,
+  IconTags,
+  IconClock,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -20,7 +23,6 @@ const Menuitems = [
     navlabel: true,
     subheader: "Home",
   },
-
   {
     id: uniqueId(),
     title: "Dashboard",
@@ -29,7 +31,7 @@ const Menuitems = [
   },
   {
     navlabel: true,
-    subheader: "All Tasks",
+    subheader: "Tasks",
   },
   {
     id: uniqueId(),
@@ -52,8 +54,14 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "Overdue Tasks",
+    icon: IconClock,
+    href: "/overdued-tasks",
+  },
+  {
+    id: uniqueId(),
+    title: "Delayed Tasks",
     icon: IconClockX,
-    href: "/overdue-tasks",
+    href: "/delayed-tasks",
   },
   {
     id: uniqueId(),
@@ -65,7 +73,6 @@ const Menuitems = [
     navlabel: true,
     subheader: "Users",
   },
-
   {
     id: uniqueId(),
     title: "All Users",
@@ -78,7 +85,50 @@ const Menuitems = [
     icon: IconSquareRoundedPlus,
     href: "/create-user",
   },
+  {
+    navlabel: true,
+    subheader: "Performance",
+  },
+  {
+    id: uniqueId(),
+    title: "Users performance",
+    icon: IconUsers,
+    href: "/users-performance",
+  },
+  {
+    id: uniqueId(),
+    title: "All Categories",
+    icon: IconTags,
+    href: "/category-performance",
+  },
 ];
+
+const filterMenuItems = (role) => {
+  switch (role) {
+    case "Admin":
+      return Menuitems; // Show all items for Admin
+    case "TeamLeader":
+      // Remove all Performance-related items for TeamLeader
+      return Menuitems.filter(
+        (item) =>
+          item.title !== "All Categories" &&
+          item.title !== "Users performance" &&
+          item.subheader !== "Performance"
+      );
+    case "User":
+      // Show only specific items for User
+      return Menuitems.filter(
+        (item) =>
+          item.title === "Dashboard" ||
+          item.title === "All Tasks" ||
+          item.title === "Overdue Tasks" ||
+          item.title === "Delayed Tasks"
+      );
+    default:
+      return [];
+  }
+};
+
 export const MenuitemsForUsers = [
   {
     navlabel: true,
@@ -105,63 +155,14 @@ export const MenuitemsForUsers = [
     id: uniqueId(),
     title: "Overdue Tasks",
     icon: IconClockX,
-    href: "/overdue-tasks",
+    href: "/overdued-tasks",
+  },
+  {
+    id: uniqueId(),
+    title: "Delayed Tasks",
+    icon: IconClockX,
+    href: "/delayed-tasks",
   },
 ];
-export const old = [
-  {
-    navlabel: true,
-    subheader: "Home",
-  },
 
-  {
-    id: uniqueId(),
-    title: "Dashboard",
-    icon: IconLayoutDashboard,
-    href: "/dashboard",
-  },
-  {
-    navlabel: true,
-    subheader: "All Tickets",
-  },
-  {
-    id: uniqueId(),
-    title: "Tickets",
-    icon: IconTypography,
-    href: "/all-tickets",
-  },
-  {
-    id: uniqueId(),
-    title: "Add Ticket",
-    icon: IconCopy,
-    href: "/add-tickets",
-  },
-  {
-    navlabel: true,
-    subheader: "Users",
-  },
-
-  {
-    id: uniqueId(),
-    title: "All Users",
-    icon: IconAperture,
-    href: "/sample-page",
-  },
-  {
-    navlabel: true,
-    subheader: "Auth",
-  },
-  {
-    id: uniqueId(),
-    title: "Login",
-    icon: IconLogin,
-    href: "/auth/login",
-  },
-  {
-    id: uniqueId(),
-    title: "Register",
-    icon: IconUserPlus,
-    href: "/auth/register",
-  },
-];
-export default Menuitems;
+export default filterMenuItems;
