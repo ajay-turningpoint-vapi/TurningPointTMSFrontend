@@ -38,10 +38,15 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import { addCategoryThunk, addTask } from "../../actions/taskActions";
+import {
+  fetchCategories,
+  addCategory,
+  addTask,
+} from "../../actions/taskActions";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import DashboardCard from "../../components/shared/DashboardCard";
 import { uploadFiles } from "../../actions/commonFileUpload";
+import { IconCirclePlus } from "@tabler/icons-react";
 
 const Icons = () => {
   const navigate = useNavigate();
@@ -59,7 +64,6 @@ const Icons = () => {
     dueDate: "",
     reminderFrequency: "",
     reminderStartDate: "",
-
     repeatFrequency: "",
     dailyDate: "",
     weeklyDays: [],
@@ -81,6 +85,7 @@ const Icons = () => {
   const audioRef = useRef(null);
   useEffect(() => {
     dispatch(getUsers());
+    dispatch(fetchCategories());
   }, [dispatch]);
 
   const handleStartRecording = () => {
@@ -372,7 +377,7 @@ const Icons = () => {
 
   const handleAddCategory = () => {
     if (newCategory && !categories.includes(newCategory)) {
-      dispatch(addCategoryThunk(newCategory));
+      dispatch(addCategory(newCategory));
       setNewCategory("");
       setOpen(false);
     }
@@ -420,32 +425,30 @@ const Icons = () => {
         );
       case "Weekly":
         return (
-          <FormGroup style={{ flexDirection: 'row',marginTop:"10px" }}>
-          {[
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ].map((day) => (
-            
-            <FormControlLabel
-              key={day}
-              control={
-                <Checkbox
-                  value={day}
-                  checked={formValues.weeklyDays.includes(day)}
-                  onChange={handleInputChange}
-                  name="weeklyDays"
-                />
-              }
-              label={day}
-            />
-          ))}
-        </FormGroup>
-        
+          <FormGroup style={{ flexDirection: "row", marginTop: "10px" }}>
+            {[
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ].map((day) => (
+              <FormControlLabel
+                key={day}
+                control={
+                  <Checkbox
+                    value={day}
+                    checked={formValues.weeklyDays.includes(day)}
+                    onChange={handleInputChange}
+                    name="weeklyDays"
+                  />
+                }
+                label={day}
+              />
+            ))}
+          </FormGroup>
         );
       case "Monthly":
         return (
@@ -490,6 +493,7 @@ const Icons = () => {
         return null;
     }
   };
+  console.log(categories);
 
   return (
     <DashboardCard title="Add New Task">
@@ -592,15 +596,19 @@ const Icons = () => {
                     helperText={errors.category}
                     select
                   >
-                    {categories.map((cat, index) => (
+                  {categories && categories.map((cat, index) => {
+                    console.log("Category: ", cat); // Log each category for debugging
+                    return (
                       <MenuItem key={index} value={cat}>
                         {cat}
                       </MenuItem>
-                    ))}
+                    );
+                  })}
                     <MenuItem>
                       <Button
-                        variant="contained"
+                        variant="contained" fullWidth
                         color="primary"
+                        endIcon={<IconCirclePlus />}
                         onClick={() => setOpen(true)}
                       >
                         Add Category

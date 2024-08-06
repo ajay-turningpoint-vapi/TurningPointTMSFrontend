@@ -1,3 +1,4 @@
+import { Category } from "@mui/icons-material";
 import {
   GET_TASKS,
   GET_TASK,
@@ -8,7 +9,12 @@ import {
   UPDATE_TASK_STATUS_REQUEST,
   UPDATE_TASK_STATUS_SUCCESS,
   UPDATE_TASK_STATUS_FAILURE,
-  ADD_CATEGORY,
+  FETCH_CATEGORIES_REQUEST,
+  FETCH_CATEGORIES_SUCCESS,
+  FETCH_CATEGORIES_FAILURE,
+  ADD_CATEGORY_REQUEST,
+  ADD_CATEGORY_SUCCESS,
+  ADD_CATEGORY_FAILURE,
 } from "../actions/types";
 
 const initialState = {
@@ -16,7 +22,8 @@ const initialState = {
   task: null,
   loading: true,
   error: {},
-  categories: ["IT", "Finance", "Admin", "HR", "Sales"],
+  categories: [],
+  categoryError: {},
 };
 
 export default function (state = initialState, action) {
@@ -69,11 +76,22 @@ export default function (state = initialState, action) {
         error: payload,
         loading: false,
       };
-    case ADD_CATEGORY:
+    case FETCH_CATEGORIES_REQUEST:
+      return { ...state, loading: true };
+    case FETCH_CATEGORIES_SUCCESS:
+      return { ...state, loading: false, categories: action.payload };
+    case FETCH_CATEGORIES_FAILURE:
+      return { ...state, loading: false, categoryError: action.payload };
+    case ADD_CATEGORY_REQUEST:
+      return { ...state, loading: true };
+    case ADD_CATEGORY_SUCCESS:
       return {
         ...state,
+        loading: false,
         categories: [...state.categories, action.payload],
       };
+    case ADD_CATEGORY_FAILURE:
+      return { ...state, loading: false, categoryError: action.payload };
     default:
       return state;
   }

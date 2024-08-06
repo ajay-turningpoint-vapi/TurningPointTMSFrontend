@@ -9,7 +9,12 @@ import {
   UPDATE_TASK_STATUS_REQUEST,
   UPDATE_TASK_STATUS_SUCCESS,
   UPDATE_TASK_STATUS_FAILURE,
-  ADD_CATEGORY,
+  FETCH_CATEGORIES_REQUEST,
+  FETCH_CATEGORIES_SUCCESS,
+  FETCH_CATEGORIES_FAILURE,
+  ADD_CATEGORY_REQUEST,
+  ADD_CATEGORY_SUCCESS,
+  ADD_CATEGORY_FAILURE,
 } from "./types";
 import { ip } from "../utils/ipconfig";
 import showLottiePopup from "../views/utilities/LottiePopup";
@@ -207,16 +212,54 @@ export const deleteTask = (id) => async (dispatch) => {
   }
 };
 
-//add category
-export const addCategory = (category) => ({
-  type: ADD_CATEGORY,
+export const fetchCategoriesRequest = () => ({
+  type: FETCH_CATEGORIES_REQUEST,
+});
+
+export const fetchCategoriesSuccess = (categories) => ({
+  type: FETCH_CATEGORIES_SUCCESS,
+  payload: categories,
+});
+
+export const fetchCategoriesFailure = (error) => ({
+  type: FETCH_CATEGORIES_FAILURE,
+  payload: error,
+});
+
+export const addCategoryRequest = () => ({
+  type: ADD_CATEGORY_REQUEST,
+});
+
+export const addCategorySuccess = (category) => ({
+  type: ADD_CATEGORY_SUCCESS,
   payload: category,
 });
-export const addCategoryThunk = (category) => {
-  return (dispatch, getState) => {
-    // Simulate an async operation
-    setTimeout(() => {
-      dispatch(addCategory(category));
-    }, 500);
-  };
+
+export const addCategoryFailure = (error) => ({
+  type: ADD_CATEGORY_FAILURE,
+  payload: error,
+});
+
+export const fetchCategories = () => async (dispatch) => {
+  dispatch(fetchCategoriesRequest());
+  try {
+    const response = await axios.get(`${ip}/api/category`);
+    dispatch(fetchCategoriesSuccess(response.data.categories));
+  } catch (error) {
+    dispatch(fetchCategoriesFailure(error.message));
+  }
+};
+
+export const addCategory = (categoryName) => async (dispatch) => {
+  dispatch(addCategoryRequest());
+  try {
+    const response = await axios.post(`${ip}/api/category`, {
+      name: categoryName,
+    });
+ 
+    
+    dispatch(addCategorySuccess(response.data.name));
+  } catch (error) {
+    dispatch(addCategoryFailure(error.message));
+  }
 };

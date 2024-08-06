@@ -22,8 +22,10 @@ import {
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import { getAllUsersPerformance } from "../../../actions/dashboardActions";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const YearlyBreakup = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalTasks: 0,
     completedTasks: 0,
@@ -192,41 +194,48 @@ const YearlyBreakup = () => {
           >
             <Grid container spacing={3}>
               <Grid item xs={6} style={{ ...gridItemStyle1 }}>
-                <Typography variant="h3" fontWeight="700">
-                  {stats.totalTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="primary"
-                  >
-                    All Tasks
+                <NavLink to="/all-tasks" style={{ textDecoration: "none" }}>
+                  <Typography variant="h3" fontWeight="700" color={"black"}>
+                    {stats.totalTasks}
                   </Typography>
-                </Stack>
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar sx={{ bgcolor: primary, width: 27, height: 27 }}>
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="primary"
+                    >
+                      All Tasks
+                    </Typography>
+                  </Stack>
+                </NavLink>
               </Grid>
               <Grid item xs={6} style={{ ...gridItemStyle2 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                  {stats.openTasks}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: successColor, width: 27, height: 27 }}>
-                    <IconArrowUpLeft width={20} color="#FFFFFF" />
-                  </Avatar>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    color="#FFFFFF"
-                  >
-                    All Open Tasks
+                <NavLink to="/all-tasks" style={{ textDecoration: "none" }}>
+                  {" "}
+                  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                    {stats.openTasks}
                   </Typography>
-                </Stack>
+                  <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                    <Avatar
+                      sx={{ bgcolor: successColor, width: 27, height: 27 }}
+                    >
+                      <IconArrowUpLeft width={20} color="#FFFFFF" />
+                    </Avatar>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      color="#FFFFFF"
+                    >
+                      All Open Tasks
+                    </Typography>
+                  </Stack>
+                </NavLink>
               </Grid>
               <Grid item xs={6} style={{ ...gridItemStyle3 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+              <NavLink to="/all-tasks" style={{ textDecoration: "none" }}>  <Typography variant="h3" fontWeight="700" color="#FFFFFF">
                   {stats.inProgressTasks}
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1} alignItems="center">
@@ -240,10 +249,10 @@ const YearlyBreakup = () => {
                   >
                     All In-Progress Tasks
                   </Typography>
-                </Stack>
+                </Stack></NavLink>
               </Grid>
               <Grid item xs={6} style={{ ...gridItemStyle4 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+              <NavLink to="/all-tasks" style={{ textDecoration: "none" }}>   <Typography variant="h3" fontWeight="700" color="#FFFFFF">
                   {stats.completedTasks}
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1} alignItems="center">
@@ -257,11 +266,11 @@ const YearlyBreakup = () => {
                   >
                     All Completed Tasks
                   </Typography>
-                </Stack>
+                </Stack></NavLink> 
               </Grid>
               {/* Second row */}
               <Grid item xs={6} style={{ ...gridItemStyle6 }}>
-                <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+              <NavLink to="/overdued-tasks" style={{ textDecoration: "none" }}> <Typography variant="h3" fontWeight="700" color="#FFFFFF">
                   {stats.overdueTasks}
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1} alignItems="center">
@@ -275,7 +284,7 @@ const YearlyBreakup = () => {
                   >
                     All Overdue Tasks
                   </Typography>
-                </Stack>
+                </Stack></NavLink>
               </Grid>
               <Grid item xs={6} style={{ ...gridItemStyle7 }}>
                 <Typography variant="h3" fontWeight="700" color="#1E4620">
@@ -296,7 +305,7 @@ const YearlyBreakup = () => {
               </Grid>
 
               <Grid item xs={6} style={{ ...gridItemStyle8 }}>
-                <Typography variant="h3" fontWeight="700" color="#5F2120">
+              <NavLink to="/delayed-tasks" style={{ textDecoration: "none" }}>  <Typography variant="h3" fontWeight="700" color="#5F2120">
                   {stats.delayedTasks}
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1} alignItems="center">
@@ -310,7 +319,7 @@ const YearlyBreakup = () => {
                   >
                     All Delayed Tasks
                   </Typography>
-                </Stack>
+                </Stack> </NavLink>
               </Grid>
             </Grid>
           </Grid>
@@ -448,57 +457,76 @@ const YearlyBreakup = () => {
                       </Stack>
                     </Grid>
                     <Grid item xs={6} style={{ ...gridItemStyle6 }}>
-                    <Typography variant="h3" fontWeight="700" color="#FFFFFF">
-                      {leader.leaderStats.stats.overdueTasks}
-                    </Typography>
-                    <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                      <Avatar sx={{ bgcolor: overDue, width: 27, height: 27 }}>
-                        <IconClockX width={20} color="#FFFFFF" />
-                      </Avatar>
-                      <Typography
-                        variant="subtitle2"
-                        fontWeight="600"
-                        color="#FFFFFF"
-                      >
-                        All Overdue Tasks
+                      <Typography variant="h3" fontWeight="700" color="#FFFFFF">
+                        {leader.leaderStats.stats.overdueTasks}
                       </Typography>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={6} style={{ ...gridItemStyle7 }}>
-                    <Typography variant="h3" fontWeight="700" color="#1E4620">
-                      {leader.leaderStats.stats.onTimeTasks}
-                    </Typography>
-                    <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                      <Avatar sx={{ bgcolor: inTime, width: 27, height: 27 }}>
-                        <IconClockCheck width={20} color="#1E4620" />
-                      </Avatar>
-                      <Typography
-                        variant="subtitle2"
-                        fontWeight="600"
-                        color="#1E4620"
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
                       >
-                        All In Time Tasks
+                        <Avatar
+                          sx={{ bgcolor: overDue, width: 27, height: 27 }}
+                        >
+                          <IconClockX width={20} color="#FFFFFF" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#FFFFFF"
+                        >
+                          All Overdue Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={6} style={{ ...gridItemStyle7 }}>
+                      <Typography variant="h3" fontWeight="700" color="#1E4620">
+                        {leader.leaderStats.stats.onTimeTasks}
                       </Typography>
-                    </Stack>
-                  </Grid>
-    
-                  <Grid item xs={6} style={{ ...gridItemStyle8 }}>
-                    <Typography variant="h3" fontWeight="700" color="#5F2120">
-                      {leader.leaderStats.stats.delayedTasks}
-                    </Typography>
-                    <Stack direction="row" spacing={1} mt={1} alignItems="center">
-                      <Avatar sx={{ bgcolor: "#FDEDED", width: 27, height: 27 }}>
-                        <IconClock width={20} color="#5F2120" />
-                      </Avatar>
-                      <Typography
-                        variant="subtitle2"
-                        fontWeight="600"
-                        color="#5F2120"
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
                       >
-                        All Delayed Tasks
+                        <Avatar sx={{ bgcolor: inTime, width: 27, height: 27 }}>
+                          <IconClockCheck width={20} color="#1E4620" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#1E4620"
+                        >
+                          All In Time Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={6} style={{ ...gridItemStyle8 }}>
+                      <Typography variant="h3" fontWeight="700" color="#5F2120">
+                        {leader.leaderStats.stats.delayedTasks}
                       </Typography>
-                    </Stack>
-                  </Grid>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{ bgcolor: "#FDEDED", width: 27, height: 27 }}
+                        >
+                          <IconClock width={20} color="#5F2120" />
+                        </Avatar>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="600"
+                          color="#5F2120"
+                        >
+                          All Delayed Tasks
+                        </Typography>
+                      </Stack>
+                    </Grid>
 
                     <Grid
                       item
